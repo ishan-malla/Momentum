@@ -1,0 +1,29 @@
+import express from "express";
+import { signup, login } from "../controllers/authController.js";
+import {
+  forgetPassword,
+  resetPassword,
+  verifyResetOTP,
+} from "../controllers/forgetPasswordController.js";
+
+import {
+  verifyOTP,
+  resendOTP,
+} from "../controllers/userVerificationControlller.js";
+
+const router = express.Router();
+
+//user auth
+router.post("/signup", signup);
+router.post("/login", login);
+
+//verify user
+router.post("/verify-otp", verifyOTP);
+router.post("/resend-otp", resendOTP);
+
+//forget password
+router.post("/forget-password", forgetPassword);
+router.post("/verify-reset-otp", verifyResetOTP);
+router.post("/reset-password", resetPassword);
+
+export default router;

@@ -3,17 +3,11 @@ import bcrypt from "bcryptjs";
 
 const userSchema = new mongoose.Schema(
   {
-    name: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     username: {
       type: String,
       required: true,
       trim: true,
       lowercase: true,
-      unique: true,
       minlength: 3,
     },
     email: {
@@ -33,14 +27,30 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    otp: {
+      type: String,
+      default: null,
+    },
+    otpExpiry: {
+      type: Date,
+      default: null,
+    },
+    otpVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
 
-userSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) return next();
-  this.password = await bcrypt.hash(this.password, 10);
-  next();
+userSchema.pre("save", async function () {
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
 });
 
 userSchema.methods.comparePassword = async function (password) {
@@ -48,9 +58,9 @@ userSchema.methods.comparePassword = async function (password) {
 };
 
 userSchema.methods.toJSON = function () {
-  const user = this.toObject();
-  delete user.password;
-  return user;
+  const { password, otp, otpExpiry, otpVerified, ...safeUser } =
+    this.toObject();
+  return safeUser;
 };
 
 const User = mongoose.model("User", userSchema);

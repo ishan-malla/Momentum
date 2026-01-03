@@ -16,10 +16,10 @@ const Signup = () => {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <div>
-            <h2 className="text-[24px] font-serif font-semibold">
+            <h2 className="text-2xl font-serif font-semibold">
               Create account
             </h2>
-            <p className="text-[13px] text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Start your productivity journey
             </p>
           </div>
@@ -27,7 +27,7 @@ const Signup = () => {
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="font-franklin text-[14px]">
+            <Label htmlFor="name" className="font-franklin text-sm">
               Name
             </Label>
             <Input
@@ -78,9 +78,8 @@ const Signup = () => {
               placeholder="••••••••"
               className="font-sans"
             />
+            <Button className="w-full font-franklin">Create account</Button>
           </div>
-
-          <Button className="w-full font-franklin">Create account</Button>
         </div>
       </div>
     </div>

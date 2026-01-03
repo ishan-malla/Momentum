@@ -5,14 +5,14 @@ import { Link } from "react-router";
 
 const Login = () => {
   return (
-    <div className="bg-card border border-border rounded-lg p-6 sm:p-8 shadow-sm">
+    <div className="bg-card border rounded-lg p-6 sm:p-8 shadow-sm h-2/3">
       {/* Login Screen */}
       <div className="space-y-6">
         <div className="text-center">
-          <h2 className="text-[24px] font-serif font-semibold mb-1">
+          <h2 className="text-2xl font-serif font-semibold mb-1">
             Welcome back
           </h2>
-          <p className="text-[13px] text-muted-foreground">
+          <p className="text-sm text-muted-foreground">
             Log in to continue your journey
           </p>
         </div>
@@ -45,9 +45,12 @@ const Login = () => {
             </div>
           </div>
 
-          <button className="text-[13px] text-primary hover:underline font-franklin">
+          <Link
+            to="/auth/forget-password"
+            className="text-[13px] text-primary hover:underline font-franklin"
+          >
             Forgot password?
-          </button>
+          </Link>
 
           <Button className="w-full font-franklin">Log in</Button>
         </div>

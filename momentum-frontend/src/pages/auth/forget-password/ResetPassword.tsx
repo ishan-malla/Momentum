@@ -1,6 +1,7 @@
 import { useState } from "react";
 import EnterEmail from "./EnterEmail";
 import EnterOTP from "./EnterOTP";
+import ChangePassword from "./ChagePassword";
 
 export type ResetCase = "EnterEmail" | "EnterOTP" | "ChangePassword";
 
@@ -15,7 +16,7 @@ const ResetPassword = () => {
       return <EnterOTP setResetState={setResetState}></EnterOTP>;
 
     case "ChangePassword":
-      return <div>Change Password</div>;
+      return <ChangePassword setResetState={setResetState}></ChangePassword>;
 
     default:
       return null;

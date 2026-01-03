@@ -42,7 +42,7 @@ const EnterEmail = ({ setResetState }: EnterEmailProps) => {
                 ></Input>
               </div>
               <Button
-                className="w-full"
+                className="w-full font-franklin"
                 onClick={() => setResetState("EnterOTP")}
               >
                 Send Verification code{" "}

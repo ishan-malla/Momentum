@@ -66,7 +66,7 @@ const EnterOTP = ({ setResetState }: EnterEmailProps) => {
         </InputOTP>
         <div className="flex flex-col items-center gap-6">
           <Button
-            className="w-full"
+            className="w-full font-franklin"
             onClick={() => setResetState("ChangePassword")}
           >
             Verify code

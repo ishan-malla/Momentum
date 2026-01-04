@@ -2,21 +2,14 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
-import { Link } from "react-router";
+import type { ResetCase } from "./ResetPassword";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-const signupSchema = z
+const passwordSchema = z
   .object({
-    name: z
-      .string()
-      .min(3, { message: "User name must be at least 3 characters" })
-      .max(10, { message: "User name must be at most 10 characters" }),
-
-    email: z.string().email({ message: "Invalid email" }),
-
-    password: z
+    newPassword: z
       .string()
       .min(6, { message: "Password must be at least 6 characters" })
       .max(10, { message: "Password must be at most 10 characters" })
@@ -26,95 +19,72 @@ const signupSchema = z
 
     confirmPassword: z.string(),
   })
-  .refine((data) => data.password === data.confirmPassword, {
+  .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords do not match",
     path: ["confirmPassword"],
   });
 
-type SignupFormInputs = z.infer<typeof signupSchema>;
+type PasswordFormInputs = z.infer<typeof passwordSchema>;
 
-const Signup = () => {
+type ChangePasswordProps = {
+  setResetState: React.Dispatch<React.SetStateAction<ResetCase>>;
+};
+
+const ChangePassword = ({ setResetState }: ChangePasswordProps) => {
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<SignupFormInputs>({ resolver: zodResolver(signupSchema) });
+  } = useForm<PasswordFormInputs>({
+    resolver: zodResolver(passwordSchema),
+  });
 
-  const onSubmit = (data: SignupFormInputs) => {
+  const onSubmit = (data: PasswordFormInputs) => {
     console.log(data);
+    // Reset password logic here
+    // Then redirect to login or show success message
   };
+
   return (
     <form
-      className="bg-card border border-border rounded-lg p-6 sm:p-8 shadow-sm"
       onSubmit={handleSubmit(onSubmit)}
+      className="bg-card border-border rounded-lg p-6 sm:p-8 shadow-sm"
     >
       <div className="space-y-6">
         <div className="flex items-center gap-4">
-          <Link
-            to="/auth/login"
+          <button
+            type="button"
+            onClick={() => setResetState("EnterOTP")}
             className="text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-5 w-5" />
-          </Link>
+          </button>
           <div>
             <h2 className="text-2xl font-serif font-semibold">
-              Create account
+              Reset Password
             </h2>
             <p className="text-sm text-muted-foreground">
-              Start your productivity journey
+              Enter your new password
             </p>
           </div>
         </div>
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="font-franklin text-sm">
-              Name
+            <Label htmlFor="new-password" className="font-franklin text-[14px]">
+              New Password
             </Label>
             <Input
-              id="name"
-              type="name"
-              placeholder="Alex Johnson"
-              className="font-sans"
-              {...register("name")}
-            />
-            {errors.name && (
-              <p className="text-sm text-red-400">{errors.name.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="signup-email" className="font-franklin text-[14px]">
-              Email
-            </Label>
-            <Input
-              id="signup-email"
-              type="email"
-              placeholder="you@example.com"
-              className="font-sans"
-              {...register("email")}
-            />
-            {errors.email && (
-              <p className="text-sm text-red-400">{errors.email.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="signup-password"
-              className="font-franklin text-[14px]"
-            >
-              Password
-            </Label>
-            <Input
-              id="signup-password"
+              id="new-password"
               type="password"
               placeholder="••••••••"
               className="font-sans"
-              {...register("password")}
+              {...register("newPassword")}
             />
-            {errors.password && (
-              <p className="text-sm text-red-400">{errors.password.message}</p>
+            {errors.newPassword && (
+              <p className="text-sm text-red-400">
+                {errors.newPassword.message}
+              </p>
             )}
           </div>
 
@@ -137,12 +107,15 @@ const Signup = () => {
                 {errors.confirmPassword.message}
               </p>
             )}
-            <Button className="w-full font-franklin">Create account</Button>
           </div>
+
+          <Button type="submit" className="w-full font-franklin">
+            Reset Password
+          </Button>
         </div>
       </div>
     </form>
   );
 };
 
-export default Signup;
+export default ChangePassword;

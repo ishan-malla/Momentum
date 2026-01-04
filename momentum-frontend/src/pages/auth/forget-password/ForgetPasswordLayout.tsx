@@ -1,4 +1,4 @@
-import ResetPassword from "./ResetPassword";
+import ResetPassword from "./components/ResetPassword";
 
 const ForgetPassword = () => {
   return (

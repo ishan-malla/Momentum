@@ -1,8 +1,9 @@
 import { Settings, Trophy } from "lucide-react";
 import { Button } from "../ui/button";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 
 const Navbar = () => {
+  const { pathname } = useLocation();
   return (
     <div className="border-b border-border bg-card sticky top-0 z-40  h-16 md:h-22 flex items-center ">
       <div className="xl:w-2/3  flex justify-between w-full p-5 xl:p-0 items-center h-full xl:mx-auto ">
@@ -11,7 +12,11 @@ const Navbar = () => {
         </h1>
         <div className="flex gap-5">
           <Button
-            className="bg-transparent hover:bg-gray-100 hidden md:block"
+            className={` ${
+              pathname === "/settings"
+                ? "bg-gray-200 hover:bg-transparent"
+                : "bg-transparent hover:bg-gray-100"
+            } hidden md:block `}
             variant="outline"
           >
             <Link to="/settings">
@@ -20,7 +25,11 @@ const Navbar = () => {
           </Button>
 
           <Button
-            className="bg-transparent hover:bg-gray-100 hidden md:block"
+            className={` ${
+              pathname === "/achievments"
+                ? "bg-gray-200 hover:bg-transparent"
+                : "bg-transparent hover:bg-gray-100"
+            } hidden md:block `}
             variant="outline"
           >
             <Link to="/achievments">

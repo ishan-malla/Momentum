@@ -11,28 +11,28 @@ import { Link, useLocation } from "react-router";
 const isActive = "border-b-3 border-primary text-primary";
 const notActiveStyle = "text-muted-foreground hover:text-accent-foreground";
 
+const navLinks = [
+  { tabName: "Overview", route: "/home", icon: <Target size={16} /> },
+  { tabName: "Habits", route: "/habits", icon: <Check size={16} /> },
+  { tabName: "Timer", route: "/timer", icon: <Clock size={16} /> },
+  {
+    tabName: "Tasks & Calendar",
+    route: "/task-calendar",
+    icon: <Calendar size={16} />,
+  },
+  {
+    tabName: "Analytics",
+    route: "/analytics",
+    icon: <ChartColumnDecreasing size={16} />,
+  },
+  { tabName: "Social", route: "/social", icon: <Users size={16} /> },
+];
+
 const DesktopNav = () => {
   const { pathname } = useLocation();
 
-  const navLinks = [
-    { tabName: "Overview", route: "/home", icon: <Target size={16} /> },
-    { tabName: "Habits", route: "/habits", icon: <Check size={16} /> },
-    { tabName: "Timer", route: "/timer", icon: <Clock size={16} /> },
-    {
-      tabName: "Tasks & Calendar",
-      route: "/task-calendar",
-      icon: <Calendar size={16} />,
-    },
-    {
-      tabName: "Analytics",
-      route: "/analytics",
-      icon: <ChartColumnDecreasing size={16} />,
-    },
-    { tabName: "Social", route: "/social", icon: <Users size={16} /> },
-  ];
-
   return (
-    <div className="bg-card border-b border-border hidden md:flex h-11 items-center p-5 xl:p-0">
+    <div className="bg-card border-b border-border sticky hidden md:flex h-11 items-center p-5 xl:p-0">
       <div className=" w-full xl:w-2/3 md:mx-auto  hidden md:flex h-full items-center justify-between  space-x-4">
         {navLinks.map((tab, index) => {
           return (

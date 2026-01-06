@@ -1,11 +1,10 @@
 import { Settings, Trophy } from "lucide-react";
 import { Button } from "../ui/button";
 import { Link, useLocation } from "react-router";
-
 const Navbar = () => {
   const { pathname } = useLocation();
   return (
-    <div className="border-b border-border bg-card sticky top-0 z-40  h-16 md:h-22 flex items-center ">
+    <div className="border-b border-border bg-card   h-16 md:h-22 flex items-center ">
       <div className="xl:w-2/3  flex justify-between w-full p-5 xl:p-0 items-center h-full xl:mx-auto ">
         <h1 className="text-lg md:text-3xl font-semibold font-elegant tracking-tight">
           Momentum

@@ -1,6 +1,6 @@
 const GreetUser = () => {
   return (
-    <div className="w-2/3   ">
+    <div className="w-2/3 mt-10">
       <h1 className="text-3xl font-serif font-medium tracking-tight">
         Good morning, Ishan
       </h1>

@@ -6,50 +6,48 @@ import {
   Target,
   Users,
 } from "lucide-react";
+import { Link, useLocation } from "react-router";
+
+const isActive = "border-b-3 border-primary text-primary";
+const notActiveStyle = "text-muted-foreground hover:text-accent-foreground";
 
 const DesktopNav = () => {
+  const { pathname } = useLocation();
+
+  const navLinks = [
+    { tabName: "Overview", route: "/home", icon: <Target size={16} /> },
+    { tabName: "Habits", route: "/habits", icon: <Check size={16} /> },
+    { tabName: "Timer", route: "/timer", icon: <Clock size={16} /> },
+    {
+      tabName: "Tasks & Calendar",
+      route: "/task-calendar",
+      icon: <Calendar size={16} />,
+    },
+    {
+      tabName: "Analytics",
+      route: "/analytics",
+      icon: <ChartColumnDecreasing size={16} />,
+    },
+    { tabName: "Social", route: "/social", icon: <Users size={16} /> },
+  ];
+
   return (
-    <div className="bg-card border-b border-border hidden md:flex h-11 items-center ">
+    <div className="bg-card border-b border-border hidden md:flex h-11 items-center p-5 xl:p-0">
       <div className=" w-full xl:w-2/3 md:mx-auto  hidden md:flex h-full items-center justify-between  space-x-4">
-        <button className=" h-11 w-20 text-sm text-muted-foreground flex items-center gap-2">
-          <span>
-            <Target size={16} />
-          </span>
-          <span>Overview</span>
-        </button>
-
-        <button className=" h-11  text-sm text-muted-foreground flex items-center gap-2">
-          <span>
-            <Check size={16} />{" "}
-          </span>
-          <span>Habits</span>
-        </button>
-        <button className=" h-11  text-sm text-muted-foreground flex items-center gap-2">
-          <span>
-            <Clock size={16} />{" "}
-          </span>
-          <span>Timer</span>
-        </button>
-
-        <button className=" h-11  text-sm text-muted-foreground flex items-center gap-2">
-          <span>
-            <Calendar size={16} />
-          </span>
-          <span>Tasks & Calendar</span>
-        </button>
-
-        <button className=" h-11  text-sm text-muted-foreground flex items-center gap-2">
-          <span>
-            <ChartColumnDecreasing size={16} />
-          </span>
-          <span>Analytics</span>
-        </button>
-        <button className=" h-11  text-sm text-muted-foreground flex items-center gap-2">
-          <span>
-            <Users size={16} />{" "}
-          </span>
-          <span>Social</span>
-        </button>
+        {navLinks.map((tab, index) => {
+          return (
+            <Link
+              to={tab.route}
+              className={` h-11  text-sm text-muted-foreground flex items-center gap-2  p-2  ${
+                pathname === tab.route ? isActive : notActiveStyle
+              }`}
+              key={index}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.tabName}</span>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

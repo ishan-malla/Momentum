@@ -5,7 +5,7 @@ import { Outlet } from "react-router";
 const Layout = () => {
   return (
     <div className="min-h-screen">
-      <header className=" ">
+      <header className="sticky top-0 z-40 ">
         <Navbar></Navbar>
         <DesktopNav></DesktopNav>
       </header>

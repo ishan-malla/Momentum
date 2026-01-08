@@ -27,7 +27,9 @@ const userSchema = new mongoose.Schema(
     totalXp: {
       type: Number,
       default: 0,
+      min: 0,
     },
+
     role: {
       type: String,
       enum: ["user", "admin"],

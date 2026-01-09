@@ -18,7 +18,9 @@ export const createHabitTemplate = async (req, res) => {
   try {
     const { name, habitType, frequency, skipDaysInAWeek } = req.body;
     const userId = req.user.id;
-    if (!name || !skipDaysInAWeek || !habitType)
+
+    console.log(name, frequency);
+    if (!name || !habitType)
       return res.status(400).json({ message: "Some fields are missing" });
 
     const habitName = name.trim();

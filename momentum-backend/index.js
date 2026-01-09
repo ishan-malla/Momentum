@@ -3,12 +3,13 @@ import cors from "cors";
 import dotenv from "dotenv";
 import connectDB from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
+import habitRoutes from "./src/routes/habitRoutes.js";
 
 dotenv.config();
 
-app.use(cors());
-
 const app = express();
+
+app.use(cors());
 app.use(express.json());
 
 // Connect to MongoDB
@@ -16,6 +17,7 @@ connectDB();
 
 // Routes
 app.use("/api/auth", authRoutes);
+app.use("/api", habitRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "API is running" });

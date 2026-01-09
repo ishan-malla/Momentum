@@ -70,16 +70,15 @@ export const signup = async (req, res) => {
 // Login
 export const login = async (req, res) => {
   try {
-    let { email, username, password } = req.body;
+    let { email, password } = req.body;
 
-    if ((!email && !username) || !password) {
+    if (!email || !password) {
       return res.status(400).json({
-        message: "Email/Username and password are required",
+        message: "Email and password are required",
       });
     }
 
     if (email) email = email.trim().toLowerCase();
-    if (username) username = username.trim();
     password = password.trim();
 
     if (email && !emailRegex.test(email)) {
@@ -109,9 +108,11 @@ export const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    const username = user.username;
     res.status(200).json({
       message: "Login successful",
-      user,
+      email,
+      username,
       token,
     });
   } catch (error) {

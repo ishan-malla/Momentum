@@ -14,6 +14,7 @@ const habitTemplateSchema = new mongoose.Schema(
       required: true,
       minlength: 3,
       maxlength: 25,
+      trim: true,
     },
 
     habitType: {

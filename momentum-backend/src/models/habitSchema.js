@@ -14,9 +14,10 @@ const habitTemplateSchema = new mongoose.Schema(
       required: true,
       minlength: 3,
       maxlength: 25,
+      trim: true,
     },
 
-    type: {
+    habitType: {
       type: String,
       enum: ["binary", "quantitative"],
       default: "binary",
@@ -26,7 +27,7 @@ const habitTemplateSchema = new mongoose.Schema(
       type: Number,
       min: 0,
       required: function () {
-        return this.type === "quantitative";
+        return this.habitType === "quantitative";
       },
     },
 
@@ -80,6 +81,12 @@ const habitSchema = new mongoose.Schema(
     },
 
     quantity: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
+
+    streak: {
       type: Number,
       min: 0,
       default: 0,

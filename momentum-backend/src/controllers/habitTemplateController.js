@@ -12,6 +12,32 @@ export const getHabitTemplate = async (req, res) => {
   }
 };
 
+//get by id
+
+export const getHabitTemplateById = async (req, res) => {
+  try {
+    const { habitTemplateId } = req.params;
+
+    if (!habitTemplateId)
+      return res.status(400).json({ message: "Provide a habit" });
+
+    if (!mongoose.Types.ObjectId.isValid(habitTemplateId)) {
+      return res.status(400).json({ message: "Invalid ID" });
+    }
+
+    const habitTemplate = await HabitTemplate.findById(habitTemplateId).select(
+      "name habitType frequency skipDaysInAWeek createdAt updatedAt"
+    );
+
+    if (!habitTemplate)
+      return res.status(400).json({ message: "habit does not exist" });
+
+    res.status(200).json(habitTemplate);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 //POST-API to create habit template
 
 export const createHabitTemplate = async (req, res) => {

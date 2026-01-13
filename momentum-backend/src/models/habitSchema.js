@@ -49,6 +49,12 @@ const habitTemplateSchema = new mongoose.Schema(
       default: 10,
       min: 0,
     },
+
+    streak: {
+      type: Number,
+      min: 0,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
@@ -56,7 +62,7 @@ const habitTemplateSchema = new mongoose.Schema(
 habitTemplateSchema.index({ user: 1, name: 1 }, { unique: true });
 
 // Individual habit schema
-const habitSchema = new mongoose.Schema(
+const habitCompletionSchema = new mongoose.Schema(
   {
     user: {
       type: mongoose.Schema.Types.ObjectId,
@@ -85,21 +91,21 @@ const habitSchema = new mongoose.Schema(
       min: 0,
       default: 0,
     },
-
-    streak: {
-      type: Number,
-      min: 0,
-      default: 0,
-    },
   },
   { timestamps: true }
 );
 
-habitSchema.index({ user: 1, habitTemplate: 1, date: 1 }, { unique: true });
+habitCompletionSchema.index(
+  { user: 1, habitTemplate: 1, date: 1 },
+  { unique: true }
+);
 
 // Export models
 export const HabitTemplate = mongoose.model(
   "HabitTemplate",
   habitTemplateSchema
 );
-export const Habit = mongoose.model("Habit", habitSchema);
+export const HabitCompletion = mongoose.model(
+  "HabitCompletion",
+  habitCompletionSchema
+);

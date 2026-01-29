@@ -56,7 +56,7 @@ const habitTemplateSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 habitTemplateSchema.index({ user: 1, name: 1 }, { unique: true });
@@ -95,20 +95,20 @@ const habitCompletionSchema = new mongoose.Schema(
       default: 0,
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 habitCompletionSchema.index(
   { user: 1, habitTemplate: 1, date: 1 },
-  { unique: true }
+  { unique: true },
 );
 
 // Export models
 export const HabitTemplate = mongoose.model(
   "HabitTemplate",
-  habitTemplateSchema
+  habitTemplateSchema,
 );
 export const HabitCompletion = mongoose.model(
   "HabitCompletion",
-  habitCompletionSchema
+  habitCompletionSchema,
 );

@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema(
       trim: true,
       lowercase: true,
       minlength: 3,
+      maxlength: 10,
     },
     email: {
       type: String,
@@ -22,6 +23,13 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 6,
     },
+
+    totalXp: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+
     role: {
       type: String,
       enum: ["user", "admin"],

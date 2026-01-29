@@ -1,7 +1,7 @@
 import User from "../models/userSchema.js";
-import { HabitTemplate } from "../models/habitSchema.js";
+import { HabitCompletion, HabitTemplate } from "../models/habitSchema.js";
 import mongoose from "mongoose";
-
+import dayjs from "dayjs";
 //get habit template
 export const getHabitTemplate = async (req, res) => {
   try {
@@ -42,10 +42,10 @@ export const getHabitTemplateById = async (req, res) => {
 
 export const createHabitTemplate = async (req, res) => {
   try {
+    const today = dayjs().startOf("day");
     const { name, habitType, frequency, skipDaysInAWeek } = req.body;
     const userId = req.user.id;
 
-    console.log(name, frequency);
     if (!name || !habitType)
       return res.status(400).json({ message: "Some fields are missing" });
 
@@ -69,8 +69,6 @@ export const createHabitTemplate = async (req, res) => {
     if (skipDaysInAWeek > 7)
       return res.status(400).json({ message: "skip days must be less than 7" });
 
-    const user = await User.findById(userId);
-
     const existingHabitTemplate = await HabitTemplate.findOne({ name });
     if (existingHabitTemplate)
       return res
@@ -78,21 +76,32 @@ export const createHabitTemplate = async (req, res) => {
         .json({ message: "Can't create habit with same name" });
 
     const newHabitTemplate = await HabitTemplate.create({
-      user,
+      user: userId,
       name: habitName,
       habitType,
       frequency,
       skipDaysInAWeek,
     });
 
-    if (newHabitTemplate)
-      return res.status(200).json({
-        id: newHabitTemplate._id,
-        name: habitName,
-        habitType,
-        frequency,
-        skipDaysInAWeek,
-      });
+    // if (newHabitTemplate)
+    //   return res.status(200).json({
+    //     id: newHabitTemplate._id,
+    //     name: habitName,
+    //     habitType,
+    //     frequency,
+    //     skipDaysInAWeek,
+    //   });
+
+    const newHabit = await HabitCompletion.create({
+      user: userId,
+      habitTemplate: newHabitTemplate._id,
+      date: today,
+    });
+
+    if (newHabit && newHabitTemplate)
+      return res
+        .status(200)
+        .json({ message: `${habitName} habit created successfully` });
   } catch (error) {
     console.error("Habit template POST error", error);
     res.status(500).json({ message: "Server error" });

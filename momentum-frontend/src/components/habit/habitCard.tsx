@@ -1,7 +1,5 @@
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Check, Plus, Minus } from "lucide-react";
 import { useState } from "react";
+import { Check, Plus, Minus, Trash2, Flame } from "lucide-react";
 
 type Habit = {
   id: number;
@@ -14,23 +12,47 @@ type Habit = {
   unit?: string;
 };
 
-export function HabitCard({ habit }: { habit: Habit }) {
+type HabitCardProps = {
+  habit: Habit;
+  onToggle?: (id: number) => void;
+  onUpdate?: (id: number, current: number) => void;
+  onDelete?: (id: number) => void;
+};
+
+export const HabitCard = ({
+  habit,
+  onToggle,
+  onUpdate,
+  onDelete,
+}: HabitCardProps) => {
   const [completed, setCompleted] = useState(habit.completed);
   const [current, setCurrent] = useState(habit.current || 0);
 
   const handleToggle = () => {
-    setCompleted(!completed);
+    const newCompleted = !completed;
+    setCompleted(newCompleted);
+    onToggle?.(habit.id);
   };
 
   const handleIncrement = () => {
     if (habit.target && current < habit.target) {
-      setCurrent(current + 1);
+      const newCurrent = current + 1;
+      setCurrent(newCurrent);
+      onUpdate?.(habit.id, newCurrent);
     }
   };
 
   const handleDecrement = () => {
     if (current > 0) {
-      setCurrent(current - 1);
+      const newCurrent = current - 1;
+      setCurrent(newCurrent);
+      onUpdate?.(habit.id, newCurrent);
+    }
+  };
+
+  const handleDelete = () => {
+    if (window.confirm(`Delete "${habit.name}"?`)) {
+      onDelete?.(habit.id);
     }
   };
 
@@ -38,78 +60,87 @@ export function HabitCard({ habit }: { habit: Habit }) {
     habit.type === "quantitative" && habit.target
       ? (current / habit.target) * 100
       : 0;
+  const isComplete =
+    habit.type === "quantitative" ? current >= (habit.target || 0) : completed;
 
   return (
-    <Card
-      className={`p-4 transition-all ${
-        completed ? "bg-success/10 border-success/30" : "bg-card"
+    <div
+      className={`p-4 rounded-lg border transition-all ${
+        isComplete ? "bg-primary/5 border-primary/20" : "bg-card border-border"
       }`}
     >
-      <div className="space-y-3">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1">
-            <h4 className="font-serif font-medium text-lg text-foreground">
-              {habit.name}
-            </h4>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-sm">🔥</span>
-              <span className="text-sm font-stat font-bold text-streak">
-                {habit.streak}
-              </span>
-              <span className="text-xs font-franklin text-muted-foreground">
-                day streak
-              </span>
-            </div>
-          </div>
-          {habit.type === "binary" && (
-            <Button
-              size="icon"
-              variant={completed ? "default" : "outline"}
-              className={completed ? "bg-success hover:bg-success/90" : ""}
-              onClick={handleToggle}
-            >
-              <Check className="h-4 w-4" />
-            </Button>
-          )}
+      <div className="flex items-center justify-between gap-3">
+        {habit.type === "binary" && (
+          <button
+            className={`h-6 w-6 shrink-0 rounded flex items-center justify-center transition-colors ${
+              isComplete
+                ? "bg-primary text-primary-foreground"
+                : "border-2 border-input hover:border-primary"
+            }`}
+            onClick={handleToggle}
+          >
+            {isComplete && <Check className="h-3.5 w-3.5" />}
+          </button>
+        )}
+
+        <div className="flex-1">
+          <h4
+            className={`text-[15px] transition-all ${
+              isComplete && habit.type === "binary"
+                ? "line-through text-accent-foreground"
+                : "text-foreground"
+            }`}
+          >
+            {habit.name}
+          </h4>
         </div>
 
-        {habit.type === "quantitative" && habit.target && (
-          <div className="space-y-3">
-            <div className="flex items-center justify-between gap-2">
-              <Button
-                size="icon"
-                variant="outline"
-                onClick={handleDecrement}
-                disabled={current === 0}
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <div className="flex-1 text-center">
-                <p className="text-2xl font-stat font-bold text-foreground">
-                  {current}/{habit.target}
-                </p>
-                <p className="text-xs font-franklin text-muted-foreground">
-                  {habit.unit}
-                </p>
-              </div>
-              <Button
-                size="icon"
-                variant="outline"
-                onClick={handleIncrement}
-                disabled={current >= habit.target}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="h-2 bg-secondary rounded-full overflow-hidden">
-              <div
-                className="h-full bg-success transition-all duration-300"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 bg-streak/10 px-2 py-0.5 rounded-md">
+            <span className="text-sm font-semibold text-streak">
+              {habit.streak}
+            </span>
+            <Flame className="h-3.5 w-3.5 text-streak" />
           </div>
-        )}
+          <button
+            className="h-7 w-7 rounded-md flex items-center justify-center text-destructive/70 hover:text-destructive hover:bg-destructive/10 transition-all"
+            onClick={handleDelete}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
       </div>
-    </Card>
+
+      {habit.type === "quantitative" && habit.target && (
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            onClick={handleDecrement}
+            disabled={current === 0}
+            className="h-6 w-6 shrink-0 rounded flex items-center justify-center hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <Minus className="h-3 w-3" />
+          </button>
+
+          <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          <span className="text-xs font-medium text-foreground/80 shrink-0 ] text-center">
+            {current}/{habit.target}
+          </span>
+
+          <button
+            onClick={handleIncrement}
+            disabled={current >= habit.target}
+            className="h-6 w-6 shrink-0 rounded flex items-center justify-center hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <Plus className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+    </div>
   );
-}
+};

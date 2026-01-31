@@ -10,6 +10,7 @@ import { protect } from "../middleware/authMiddleware.js";
 import {
   getHabits,
   getHabitById,
+  habitProgress,
 } from "../controllers/habitCompletionController.js";
 
 const router = express.Router();
@@ -20,5 +21,11 @@ router.post("/habit-template", protect, createHabitTemplate);
 router.delete("/habit-template/:habitTemplateId", protect, deleteHabitTemplate);
 
 router.get("/habit", protect, streakMiddleware, getHabits);
-router.get("/habit/:id", protect, streakMiddleware, getHabitById);
+router.get("/habit/:habitId", protect, streakMiddleware, getHabitById);
+router.patch(
+  "/habit/:habitId/progress",
+  protect,
+  streakMiddleware,
+  habitProgress,
+);
 export default router;

@@ -44,11 +44,11 @@ const habitTemplateSchema = new mongoose.Schema(
       min: 0,
     },
 
-    xp: {
-      type: Number,
-      default: 10,
-      min: 0,
-    },
+    // xp: {
+    //   type: Number,
+    //   default: 10,
+    //   min: 0,
+    // },
 
     streak: {
       type: Number,
@@ -81,14 +81,14 @@ const habitCompletionSchema = new mongoose.Schema(
       required: true,
     },
 
-    //this is the updated quantity when update request is done fromt the user this is for binary habits
+    //this is the updated quantity when update request is done from the user this is for binary habits
 
     completion: {
       type: Boolean,
       default: false,
     },
 
-    //this is the updated quantity when update request is done fromt the user this is for qualitative habits
+    //this is the updated quantity when update request is done from the user this is for qualitative habits
     quantity: {
       type: Number,
       min: 0,

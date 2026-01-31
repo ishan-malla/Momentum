@@ -25,11 +25,12 @@ export const streakMiddleware = async (req, res, next) => {
       },
     ]);
 
+    //if skipped is true don't allow streak to be 0
+    //NO NEED TO CALCULATE MISSED DAYS JUST CHECK IF YESTERDAY'S HABIT WAS COMPLTE
     for (const habit of latestHabits) {
       const numberOfDaysMissed = today.diff(habit.date, "day") - 1;
       if (numberOfDaysMissed > 0) {
       }
-      console.log(numberOfDaysMissed);
 
       const latestHabit = await HabitTemplate.findById(
         habit.habitTemplate.toString(),

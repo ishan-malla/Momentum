@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import { HabitCompletion } from "../models/habitSchema.js";
+import { HabitCompletion, HabitTemplate } from "../models/habitSchema.js";
 
 export const streakMiddleware = async (req, res, next) => {
   try {
@@ -25,15 +25,23 @@ export const streakMiddleware = async (req, res, next) => {
       },
     ]);
 
-    //calculate missed days and if missed days not 0 increment streak
+    for (const habit of latestHabits) {
+      const numberOfDaysMissed = today.diff(habit.date, "day") - 1;
+      if (numberOfDaysMissed > 0) {
+      }
+      console.log(numberOfDaysMissed);
 
-    // count the number of habit tmeplates and figure total number of habits of that day and store
-    // if habit is completed increase habit count of day and compare  total and completed to figure out completion rate
+      const latestHabit = await HabitTemplate.findById(
+        habit.habitTemplate.toString(),
+      );
 
-    console.log(latestHabits);
+      if (numberOfDaysMissed >= 0) {
+        latestHabit.streak = 0;
+      }
+    }
 
     next();
   } catch (error) {
-    res.status(401).json({ message: "error at streak middleware" });
+    res.status(401).json({ message: error.message });
   }
 };

@@ -26,3 +26,25 @@ export const getHabits = async (req, res) => {
     });
   }
 };
+
+export const getHabitById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const habit = await HabitCompletion.findById(id).populate({
+      path: "habitTemplate",
+      select: "name habitType frequency skipDaysInAWeek streak xp",
+    });
+
+    if (!habit) {
+      return res.status(404).json({ message: "Habit not found" });
+    }
+
+    return res.status(200).json(habit);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error fetching habit",
+      error: error.message,
+    });
+  }
+};

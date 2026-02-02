@@ -38,11 +38,6 @@ const habitTemplateSchema = new mongoose.Schema(
       default: 0,
     },
 
-    totalNumberOfHabits: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
     streak: {
       type: Number,
       min: 0,
@@ -101,7 +96,6 @@ habitCompletionSchema.index(
   { unique: true },
 );
 
-// Export models
 export const HabitTemplate = mongoose.model(
   "HabitTemplate",
   habitTemplateSchema,

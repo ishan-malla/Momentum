@@ -10,12 +10,13 @@ import {
   verifyOTP,
   resendOTP,
 } from "../controllers/userVerificationControlller.js";
+import { createHabit } from "../middleware/createHabitMiddleware.js";
 
 const router = express.Router();
 
 //user auth
 router.post("/signup", signup);
-router.post("/login", login);
+router.post("/login", createHabit, login);
 
 //verify user
 router.post("/verify-otp", verifyOTP);

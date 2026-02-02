@@ -82,6 +82,10 @@ export const habitProgress = async (req, res) => {
     if (!habit) {
       return res.status(404).json({ message: "Habit not found" });
     }
+    if (habit.skipped)
+      return res
+        .status(400)
+        .json({ message: "Skipped habit cannot be marked as complete" });
 
     const today = dayjs().startOf("day");
     const habitDate = dayjs(habit.date).startOf("day");
@@ -147,4 +151,135 @@ export const habitProgress = async (req, res) => {
     });
   }
 };
-// so for skip days each week allocate the same number of skip days and decrease eah time when user used it
+
+//get skip days
+export const getSkipInfo = async (req, res) => {
+  try {
+    const { habitId } = req.params;
+
+    const habit = await HabitCompletion.findById(habitId).populate({
+      path: "habitTemplate",
+      select: "skipDaysInAWeek",
+    });
+
+    if (!habit) {
+      return res.status(404).json({ message: "Habit not found" });
+    }
+
+    const weekStart = dayjs().startOf("week").toDate();
+    const weekEnd = dayjs().endOf("week").toDate();
+
+    const skipsUsedThisWeek = await HabitCompletion.countDocuments({
+      habitTemplate: habit.habitTemplate._id,
+      user: habit.user,
+      date: { $gte: weekStart, $lte: weekEnd },
+      skipped: true,
+    });
+
+    const skipsRemaining =
+      habit.habitTemplate.skipDaysInAWeek - skipsUsedThisWeek;
+
+    return res.status(200).json({
+      skipsRemaining,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error fetching skip info",
+      error: error.message,
+    });
+  }
+};
+
+//update skip days
+
+export const skipHabits = async (req, res) => {
+  try {
+    const { habitId } = req.params;
+    const { delta } = req.body;
+
+    if (!habitId) {
+      return res.status(400).json({ message: "habit id does not exist" });
+    }
+    if (!delta) {
+      return res.status(400).json({ message: "delta does not exist" });
+    }
+
+    const habit = await HabitCompletion.findById(habitId).populate({
+      path: "habitTemplate",
+      select: "skipDaysInAWeek",
+    });
+
+    if (!habit) {
+      return res.status(404).json({ message: "Habit not found" });
+    }
+
+    if (habit.completion) {
+      return res
+        .status(400)
+        .json({ message: "Completed habit cannot be skipped" });
+    }
+
+    const today = dayjs().startOf("day");
+    const habitDate = dayjs(habit.date).startOf("day");
+    if (!habitDate.isSame(today)) {
+      return res
+        .status(404)
+        .json({ message: "Only today's habits can be skipped" });
+    }
+
+    const weekStart = dayjs().startOf("week").toDate();
+    const weekEnd = dayjs().endOf("week").toDate();
+
+    const skipsUsedThisWeek = await HabitCompletion.countDocuments({
+      habitTemplate: habit.habitTemplate._id,
+      user: habit.user,
+      date: { $gte: weekStart, $lte: weekEnd },
+      skipped: true,
+    });
+
+    const maxSkipsPerWeek = habit.habitTemplate.skipDaysInAWeek;
+
+    if (delta === 1) {
+      if (habit.skipped) {
+        return res.status(400).json({ message: "Habit already skipped" });
+      }
+
+      if (skipsUsedThisWeek >= maxSkipsPerWeek) {
+        return res.status(400).json({
+          message: `No skips remaining this week. Limit: ${maxSkipsPerWeek}`,
+        });
+      }
+
+      habit.skipped = true;
+      await habit.save();
+
+      return res.status(200).json({
+        message: "Habit marked as skipped",
+        skipsUsed: skipsUsedThisWeek + 1,
+        skipsRemaining: maxSkipsPerWeek - (skipsUsedThisWeek + 1),
+      });
+    }
+
+    if (delta === -1) {
+      if (!habit.skipped) {
+        return res.status(400).json({ message: "Habit is not skipped" });
+      }
+
+      habit.skipped = false;
+      await habit.save();
+
+      return res.status(200).json({
+        message: "Habit marked as unskipped",
+        skipsUsed: skipsUsedThisWeek - 1,
+        skipsRemaining: maxSkipsPerWeek - (skipsUsedThisWeek - 1),
+      });
+    }
+
+    return res.status(400).json({ message: "Invalid delta value" });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error updating skip status",
+      error: error.message,
+    });
+  }
+};

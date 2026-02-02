@@ -88,6 +88,11 @@ const habitCompletionSchema = new mongoose.Schema(
       default: false,
     },
 
+    skipped: {
+      type: Boolean,
+      default: false,
+    },
+
     //this is the updated quantity when update request is done from the user this is for qualitative habits
     quantity: {
       type: Number,

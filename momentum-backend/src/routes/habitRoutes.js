@@ -11,6 +11,8 @@ import {
   getHabits,
   getHabitById,
   habitProgress,
+  skipHabits,
+  getSkipInfo,
 } from "../controllers/habitCompletionController.js";
 
 const router = express.Router();
@@ -28,4 +30,17 @@ router.patch(
   streakMiddleware,
   habitProgress,
 );
+router.patch(
+  "/habit/:habitId/skip-habit",
+  protect,
+  streakMiddleware,
+  skipHabits,
+);
+router.get(
+  "/habit/:habitId/skip-habit",
+  protect,
+  streakMiddleware,
+  getSkipInfo,
+);
+
 export default router;

@@ -26,7 +26,7 @@ export const getHabitTemplateById = async (req, res) => {
     }
 
     const habitTemplate = await HabitTemplate.findById(habitTemplateId).select(
-      "name habitType frequency skipDaysInAWeek createdAt updatedAt",
+      "name habitType frequency skipDaysInAWeek createdAt updatedAt totalXp",
     );
 
     if (!habitTemplate)

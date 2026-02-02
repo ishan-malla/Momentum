@@ -43,13 +43,6 @@ const habitTemplateSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
-
-    // xp: {
-    //   type: Number,
-    //   default: 10,
-    //   min: 0,
-    // },
-
     streak: {
       type: Number,
       min: 0,

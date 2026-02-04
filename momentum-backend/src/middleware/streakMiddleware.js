@@ -8,7 +8,10 @@ export const streakMiddleware = async (req, res, next) => {
 
     const yesterday = dayjs().subtract(1, "day").startOf("day").toDate();
 
-    const habitTemplates = await HabitTemplate.find({ user: userId });
+    const habitTemplates = await HabitTemplate.find({
+      user: userId,
+      isDeleted: { $ne: true },
+    });
 
     for (const template of habitTemplates) {
       const yesterdayHabit = await HabitCompletion.findOne({

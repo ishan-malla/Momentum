@@ -1,29 +1,48 @@
 import { HabitCompletion, HabitTemplate } from "../models/habitSchema.js";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
+import timezone from "dayjs/plugin/timezone.js";
 import User from "../models/userSchema.js";
-//get
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 export const getHabits = async (req, res) => {
   try {
-    const today = dayjs().startOf("day").toDate();
-    const habits = await HabitCompletion.find().populate({
+    const userId = req.user.id;
+    const today = dayjs().tz("Asia/Kathmandu").startOf("day");
+
+    const habits = await HabitCompletion.find({ user: userId }).populate({
       path: "habitTemplate",
-      select: "name habitType frequency skipDaysInAWeek streak xp ",
+      select: "name habitType frequency skipDaysInAWeek streak xp isDeleted",
     });
 
-    if (!habits) {
-      return res.status(404).json({ message: "Habit not found" });
+    if (!habits || habits.length === 0) {
+      return res.status(404).json({ message: "No habits found" });
     }
-    const todaysHabit = habits.filter((habit) =>
-      dayjs(habit.date).isSame(today, "day"),
-    );
 
-    if (!todaysHabit[0])
-      return res.status(400).json({ message: "No habits today" });
+    const todaysHabit = habits.filter((habit) => {
+      if (!habit.habitTemplate || habit.habitTemplate.isDeleted) return false;
+      const habitDate = dayjs(habit.date).tz("Asia/Kathmandu").startOf("day");
+      return habitDate.isSame(today, "day");
+    });
+
+    if (!todaysHabit || todaysHabit.length === 0) {
+      return res.status(404).json({
+        message: "No habits for today",
+        debug: {
+          totalHabits: habits.length,
+          todayDate: today.format("YYYY-MM-DD"),
+          habitDates: habits.map((h) =>
+            dayjs(h.date).tz("Asia/Kathmandu").format("YYYY-MM-DD"),
+          ),
+        },
+      });
+    }
 
     return res.status(200).json(todaysHabit);
-
-    // const habit
   } catch (error) {
+    console.error("Error in getHabits:", error);
     return res.status(500).json({
       message: "Error fetching habits",
       error: error.message,
@@ -34,17 +53,25 @@ export const getHabits = async (req, res) => {
 export const getHabitById = async (req, res) => {
   try {
     const { habitId } = req.params;
+    const userId = req.user.id;
 
     if (!habitId)
-      return res.status(400).json({ message: "habit id does not exits" });
+      return res.status(400).json({ message: "habit id does not exist" });
 
-    const habit = await HabitCompletion.findById(habitId).populate({
+    const habit = await HabitCompletion.findOne({
+      _id: habitId,
+      user: userId,
+    }).populate({
       path: "habitTemplate",
-      select: "name habitType frequency skipDaysInAWeek streak xp",
+      select: "name habitType frequency skipDaysInAWeek streak xp isDeleted",
     });
 
     if (!habit) {
       return res.status(404).json({ message: "Habit not found" });
+    }
+
+    if (!habit.habitTemplate || habit.habitTemplate.isDeleted) {
+      return res.status(404).json({ message: "Habit template not found" });
     }
 
     return res.status(200).json(habit);
@@ -55,11 +82,11 @@ export const getHabitById = async (req, res) => {
     });
   }
 };
+
 export const habitProgress = async (req, res) => {
   try {
     const { habitId } = req.params;
     const userId = req.user.id;
-
     const { delta } = req.body;
 
     if (!delta) {
@@ -74,24 +101,33 @@ export const habitProgress = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    const habit = await HabitCompletion.findById(habitId).populate({
+    const habit = await HabitCompletion.findOne({
+      _id: habitId,
+      user: userId,
+    }).populate({
       path: "habitTemplate",
-      select: "habitType frequency skipDaysInAweek",
+      select: "habitType frequency skipDaysInAweek isDeleted",
     });
 
     if (!habit) {
       return res.status(404).json({ message: "Habit not found" });
     }
+
+    if (!habit.habitTemplate || habit.habitTemplate.isDeleted) {
+      return res.status(404).json({ message: "Habit template not found" });
+    }
+
     if (habit.skipped)
       return res
         .status(400)
         .json({ message: "Skipped habit cannot be marked as complete" });
 
-    const today = dayjs().startOf("day");
-    const habitDate = dayjs(habit.date).startOf("day");
-    if (!habitDate.isSame(today)) {
+    const today = dayjs().tz("Asia/Kathmandu").startOf("day");
+    const habitDate = dayjs(habit.date).tz("Asia/Kathmandu").startOf("day");
+
+    if (!habitDate.isSame(today, "day")) {
       return res
-        .status(404)
+        .status(400)
         .json({ message: "Only today's habits can be updated" });
     }
 
@@ -152,26 +188,33 @@ export const habitProgress = async (req, res) => {
   }
 };
 
-//get skip days
 export const getSkipInfo = async (req, res) => {
   try {
     const { habitId } = req.params;
+    const userId = req.user.id;
 
-    const habit = await HabitCompletion.findById(habitId).populate({
+    const habit = await HabitCompletion.findOne({
+      _id: habitId,
+      user: userId,
+    }).populate({
       path: "habitTemplate",
-      select: "skipDaysInAWeek",
+      select: "skipDaysInAWeek isDeleted",
     });
 
     if (!habit) {
       return res.status(404).json({ message: "Habit not found" });
     }
 
-    const weekStart = dayjs().startOf("week").toDate();
-    const weekEnd = dayjs().endOf("week").toDate();
+    if (!habit.habitTemplate || habit.habitTemplate.isDeleted) {
+      return res.status(404).json({ message: "Habit template not found" });
+    }
+
+    const weekStart = dayjs().tz("Asia/Kathmandu").startOf("week").toDate();
+    const weekEnd = dayjs().tz("Asia/Kathmandu").endOf("week").toDate();
 
     const skipsUsedThisWeek = await HabitCompletion.countDocuments({
       habitTemplate: habit.habitTemplate._id,
-      user: habit.user,
+      user: userId,
       date: { $gte: weekStart, $lte: weekEnd },
       skipped: true,
     });
@@ -190,12 +233,11 @@ export const getSkipInfo = async (req, res) => {
   }
 };
 
-//update skip days
-
 export const skipHabits = async (req, res) => {
   try {
     const { habitId } = req.params;
     const { delta } = req.body;
+    const userId = req.user.id;
 
     if (!habitId) {
       return res.status(400).json({ message: "habit id does not exist" });
@@ -204,13 +246,20 @@ export const skipHabits = async (req, res) => {
       return res.status(400).json({ message: "delta does not exist" });
     }
 
-    const habit = await HabitCompletion.findById(habitId).populate({
+    const habit = await HabitCompletion.findOne({
+      _id: habitId,
+      user: userId,
+    }).populate({
       path: "habitTemplate",
-      select: "skipDaysInAWeek",
+      select: "skipDaysInAWeek isDeleted",
     });
 
     if (!habit) {
       return res.status(404).json({ message: "Habit not found" });
+    }
+
+    if (!habit.habitTemplate || habit.habitTemplate.isDeleted) {
+      return res.status(404).json({ message: "Habit template not found" });
     }
 
     if (habit.completion) {
@@ -219,20 +268,21 @@ export const skipHabits = async (req, res) => {
         .json({ message: "Completed habit cannot be skipped" });
     }
 
-    const today = dayjs().startOf("day");
-    const habitDate = dayjs(habit.date).startOf("day");
-    if (!habitDate.isSame(today)) {
+    const today = dayjs().tz("Asia/Kathmandu").startOf("day");
+    const habitDate = dayjs(habit.date).tz("Asia/Kathmandu").startOf("day");
+
+    if (!habitDate.isSame(today, "day")) {
       return res
-        .status(404)
+        .status(400)
         .json({ message: "Only today's habits can be skipped" });
     }
 
-    const weekStart = dayjs().startOf("week").toDate();
-    const weekEnd = dayjs().endOf("week").toDate();
+    const weekStart = dayjs().tz("Asia/Kathmandu").startOf("week").toDate();
+    const weekEnd = dayjs().tz("Asia/Kathmandu").endOf("week").toDate();
 
     const skipsUsedThisWeek = await HabitCompletion.countDocuments({
       habitTemplate: habit.habitTemplate._id,
-      user: habit.user,
+      user: userId,
       date: { $gte: weekStart, $lte: weekEnd },
       skipped: true,
     });

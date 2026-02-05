@@ -71,9 +71,9 @@ export const createHabitTemplate = async (req, res) => {
     if (skipDaysInAWeek > 7)
       return res.status(400).json({ message: "skip days must be less than 7" });
 
-    const habitCount = await HabitTemplate.countDocuments({ user: userId });
+    const habit = await HabitTemplate.Documents({ user: userId });
 
-    if (habitCount >= 8)
+    if (habit >= 8)
       return res
         .status(400)
         .json({ message: "You can only create up to 8 habits" });

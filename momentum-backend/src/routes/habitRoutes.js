@@ -15,6 +15,7 @@ import {
   skipHabits,
   getSkipInfo,
 } from "../controllers/habitCompletionController.js";
+import { heatMap } from "../controllers/habitHeatMapController.js";
 
 const router = express.Router();
 
@@ -28,22 +29,21 @@ router.get("/habit/:habitId", protect, streakMiddleware, getHabitById);
 router.patch(
   "/habit/:habitId/progress",
   protect,
-  habitProgress,
   streakMiddleware,
+  habitProgress,
 );
 router.patch(
   "/habit/:habitId/skip-habit",
   protect,
-  habitProgress,
   streakMiddleware,
   skipHabits,
 );
 router.get(
   "/habit/:habitId/skip-habit",
   protect,
-  habitProgress,
   streakMiddleware,
   getSkipInfo,
 );
 
+router.get("/habit-heatmap", protect, createHabit, streakMiddleware, heatMap);
 export default router;

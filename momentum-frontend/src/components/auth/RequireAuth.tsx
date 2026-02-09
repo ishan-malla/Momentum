@@ -1,38 +1,21 @@
 import { Navigate, Outlet, useLocation } from "react-router";
 import { useSelector } from "react-redux";
 import { selectCurrentToken } from "@/features/auth/authSlice";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRefreshMutation } from "@/features/auth/authApiSlice";
 
 const RequireAuth = () => {
   const token = useSelector(selectCurrentToken);
   const location = useLocation();
-  const [refresh, { isLoading }] = useRefreshMutation();
-  const [checked, setChecked] = useState(false);
+  const [refresh, { isLoading, isUninitialized }] = useRefreshMutation();
 
   useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      if (token) {
-        if (!cancelled) setChecked(true);
-        return;
-      }
+    if (!token && isUninitialized) {
+      refresh();
+    }
+  }, [refresh, token, isUninitialized]);
 
-      try {
-        await refresh().unwrap();
-      } catch {
-      } finally {
-        if (!cancelled) setChecked(true);
-      }
-    };
-
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [refresh, token]);
-
-  if (!token && (!checked || isLoading)) {
+  if (!token && (isUninitialized || isLoading)) {
     return null;
   }
 

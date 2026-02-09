@@ -147,6 +147,16 @@
   body {
     @apply bg-background text-foreground;
   }
+  .toaster [data-sonner-toast] {
+    font-family: var(--font-sans);
+  }
+  .toaster [data-sonner-toast] [data-title] {
+    font-family: var(--font-franklin);
+    font-weight: 600;
+  }
+  .toaster [data-sonner-toast] [data-description] {
+    font-family: var(--font-sans);
+  }
   .font-franklin {
     font-family: var(--font-franklin);
   }

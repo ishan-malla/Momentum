@@ -1,5 +1,5 @@
 import express from "express";
-import { signup, login } from "../controllers/authController.js";
+import { signup, login, refresh, logout } from "../controllers/authController.js";
 import {
   forgetPassword,
   resetPassword,
@@ -16,7 +16,9 @@ const router = express.Router();
 
 //user auth
 router.post("/signup", signup);
-router.post("/login", createHabit, login);
+router.post("/login", login);
+router.post("/refresh", refresh);
+router.post("/logout", logout);
 
 //verify user
 router.post("/verify-otp", verifyOTP);

@@ -1,6 +1,5 @@
 import { HabitCard } from "@/components/habit/habitCard";
 import GreetUser from "@/components/users/GreetUser";
-import { useState } from "react";
 
 const habitsData = [
   {
@@ -49,24 +48,18 @@ const habitsData = [
 ];
 
 const Home = () => {
-  const [selectedHabit, setSelectedHabit] = useState(habitsData[0]);
   return (
     <div>
-      <GreetUser></GreetUser>
-      <section className="space-y-4 w-2/3 mx-auto ">
-        <div className="flex flex-col gap-5 mt-10 ">
+      <GreetUser />
+      <section className="space-y-4 w-2/3 mx-auto">
+        <div className="flex flex-col gap-5 mt-10">
           {habitsData.map((habit) => (
-            <div
-              key={habit.id}
-              onClick={() => setSelectedHabit(habit)}
-              className="cursor-pointer"
-            >
-              <HabitCard habit={habit} />
-            </div>
+            <HabitCard key={habit.id} habit={habit} />
           ))}
         </div>
       </section>
     </div>
   );
 };
+
 export default Home;

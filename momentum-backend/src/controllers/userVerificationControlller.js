@@ -1,8 +1,20 @@
-import jwt from "jsonwebtoken";
 import User from "../models/userSchema.js";
 import { sendOTPEmail, sendWelcomeEmail } from "../utils/emailService.js";
 import { generateOTP } from "../utils/generateOTP.js";
 import { emailRegex } from "../utils/validator.js";
+import {
+  hashToken,
+  setRefreshTokenCookie,
+  signAccessToken,
+  signRefreshToken,
+} from "../utils/tokenService.js";
+
+const toSafeUser = (user) => ({
+  id: user._id,
+  email: user.email,
+  username: user.username,
+  role: user.role,
+});
 
 // Verify OTP
 export const verifyOTP = async (req, res) => {
@@ -16,7 +28,7 @@ export const verifyOTP = async (req, res) => {
     }
 
     email = email.trim().toLowerCase();
-    otp = otp.trim();
+    otp = String(otp).trim();
 
     if (!emailRegex.test(email)) {
       return res.status(400).json({ message: "Invalid email format" });
@@ -46,16 +58,17 @@ export const verifyOTP = async (req, res) => {
 
     await sendWelcomeEmail(user.email, user.username);
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" },
-    );
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken(user);
+    setRefreshTokenCookie(res, refreshToken);
+    user.refreshTokenHash = hashToken(refreshToken);
+    user.refreshTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await user.save();
 
     res.status(200).json({
       message: "Email verified successfully",
-      user,
-      token,
+      user: toSafeUser(user),
+      token: accessToken,
     });
   } catch (error) {
     console.error("Verify OTP error:", error);

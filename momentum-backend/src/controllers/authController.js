@@ -1,8 +1,22 @@
-import jwt from "jsonwebtoken";
 import User from "../models/userSchema.js";
 import { sendOTPEmail } from "../utils/emailService.js";
 import { generateOTP } from "../utils/generateOTP.js";
 import { emailRegex } from "../utils/validator.js";
+import {
+  clearRefreshTokenCookie,
+  hashToken,
+  setRefreshTokenCookie,
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+} from "../utils/tokenService.js";
+
+const toSafeUser = (user) => ({
+  id: user._id,
+  email: user.email,
+  username: user.username,
+  role: user.role,
+});
 
 // Signup
 export const signup = async (req, res) => {
@@ -55,8 +69,7 @@ export const signup = async (req, res) => {
 
     res.status(201).json({
       message: "Signup successful. Please verify your email.",
-      email: newUser.email,
-      userId: newUser._id,
+      user: toSafeUser(newUser),
     });
   } catch (error) {
     console.error("Signup error:", error);
@@ -92,7 +105,7 @@ export const login = async (req, res) => {
 
     if (!user.isVerified) {
       return res.status(403).json({
-        message: "Please verify your email before login",
+        message: "Email not verified. Please verify your email before login.",
         email: user.email,
       });
     }
@@ -102,18 +115,18 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "7d" }
-    );
+    const accessToken = signAccessToken(user);
+    const refreshToken = signRefreshToken(user);
 
-    const username = user.username;
+    setRefreshTokenCookie(res, refreshToken);
+    user.refreshTokenHash = hashToken(refreshToken);
+    user.refreshTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await user.save();
+
     res.status(200).json({
       message: "Login successful",
-      email,
-      username,
-      token,
+      user: toSafeUser(user),
+      token: accessToken,
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -121,5 +134,74 @@ export const login = async (req, res) => {
       message: "Server error",
       error: error.message,
     });
+  }
+};
+
+// Refresh access token using refresh token cookie
+export const refresh = async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Session expired. Please log in." });
+    }
+
+    const decoded = verifyRefreshToken(refreshToken);
+    if (!decoded || decoded.type !== "refresh" || !decoded.id) {
+      return res.status(401).json({ message: "Session expired. Please log in." });
+    }
+
+    const user = await User.findById(decoded.id);
+    if (!user || !user.refreshTokenHash) {
+      return res.status(401).json({ message: "Session expired. Please log in." });
+    }
+
+    if (user.refreshTokenExpiresAt && user.refreshTokenExpiresAt < new Date()) {
+      return res.status(401).json({ message: "Session expired. Please log in." });
+    }
+
+    if (hashToken(refreshToken) !== user.refreshTokenHash) {
+      return res.status(401).json({ message: "Session expired. Please log in." });
+    }
+
+    // Rotate refresh token
+    const newRefreshToken = signRefreshToken(user);
+    setRefreshTokenCookie(res, newRefreshToken);
+    user.refreshTokenHash = hashToken(newRefreshToken);
+    user.refreshTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    await user.save();
+
+    const accessToken = signAccessToken(user);
+    return res.status(200).json({
+      message: "Session refreshed",
+      user: toSafeUser(user),
+      token: accessToken,
+    });
+  } catch (error) {
+    return res.status(401).json({ message: "Session expired. Please log in." });
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    clearRefreshTokenCookie(res);
+
+    if (refreshToken) {
+      try {
+        const decoded = verifyRefreshToken(refreshToken);
+        if (decoded?.id) {
+          await User.findByIdAndUpdate(decoded.id, {
+            refreshTokenHash: null,
+            refreshTokenExpiresAt: null,
+          });
+        }
+      } catch {
+        // Ignore invalid refresh token
+      }
+    }
+
+    return res.status(200).json({ message: "Logged out" });
+  } catch (error) {
+    return res.status(200).json({ message: "Logged out" });
   }
 };

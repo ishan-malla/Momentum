@@ -44,7 +44,7 @@ export const verifyResetOTP = async (req, res) => {
     if (!user.otpExpiry || user.otpExpiry < Date.now())
       return res.status(400).json({ message: "OTP expired" });
 
-    if (otp !== user.otp)
+    if (String(otp).trim() !== String(user.otp ?? "").trim())
       return res.status(400).json({ message: "OTP does not match" });
 
     user.otpVerified = true;

@@ -6,7 +6,10 @@ import { Link } from "react-router";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-
+import { useNavigate } from "react-router";
+import { useSignupMutation } from "@/features/auth/authApiSlice";
+import { useState } from "react";
+import { toast } from "sonner";
 const signupSchema = z
   .object({
     name: z
@@ -14,13 +17,12 @@ const signupSchema = z
       .min(3, { message: "User name must be at least 3 characters" })
       .max(10, { message: "User name must be at most 10 characters" }),
 
-    email: z.string().email({ message: "Invalid email" }),
+    email: z.email({ message: "Invalid email" }),
 
     password: z
       .string()
       .min(6, { message: "Password must be at least 6 characters" })
       .max(10, { message: "Password must be at most 10 characters" })
-      .regex(/[a-z]/, "Must contain at least one lowercase letter")
       .regex(/[A-Z]/, "Must contain at least one uppercase letter")
       .regex(/[0-9]/, "Must contain at least one number"),
 
@@ -40,13 +42,48 @@ const Signup = () => {
     formState: { errors },
   } = useForm<SignupFormInputs>({ resolver: zodResolver(signupSchema) });
 
-  const onSubmit = (data: SignupFormInputs) => {
-    console.log(data);
+  const navigate = useNavigate();
+  const [signup, { isLoading }] = useSignupMutation();
+  const [serverMessage, setServerMessage] = useState<string | null>(null);
+
+  const onSubmit = async (data: SignupFormInputs) => {
+    setServerMessage(null);
+    try {
+      const result = await signup({
+        username: data.name,
+        email: data.email,
+        password: data.password,
+        role: "user",
+      }).unwrap();
+      toast.success("Account created", {
+        description: "Check your email for the verification code (OTP).",
+      });
+      setServerMessage(result.message);
+      navigate("/auth/login", { replace: true });
+    } catch (error) {
+      if (typeof error === "object" && error && "data" in error) {
+        const maybeData = (error as { data?: unknown }).data;
+        if (
+          typeof maybeData === "object" &&
+          maybeData &&
+          "message" in maybeData &&
+          typeof (maybeData as { message?: unknown }).message === "string"
+        ) {
+          const message = (maybeData as { message: string }).message;
+          toast.error("Signup failed", { description: message });
+          setServerMessage(message);
+          return;
+        }
+      }
+      toast.error("Signup failed", { description: "Please try again." });
+      setServerMessage("Signup failed");
+    }
   };
   return (
     <form
       className="bg-card border border-border rounded-lg p-6 sm:p-8 shadow-sm"
       onSubmit={handleSubmit(onSubmit)}
+      noValidate
     >
       <div className="space-y-6">
         <div className="flex items-center gap-4">
@@ -89,7 +126,9 @@ const Signup = () => {
             </Label>
             <Input
               id="signup-email"
-              type="email"
+              type="text"
+              inputMode="email"
+              autoComplete="email"
               placeholder="you@example.com"
               className="font-sans"
               {...register("email")}
@@ -137,7 +176,12 @@ const Signup = () => {
                 {errors.confirmPassword.message}
               </p>
             )}
-            <Button className="w-full font-franklin">Create account</Button>
+            {serverMessage && (
+              <p className="text-sm text-muted-foreground">{serverMessage}</p>
+            )}
+            <Button className="w-full font-franklin" disabled={isLoading}>
+              {isLoading ? "Creating..." : "Create account"}
+            </Button>
           </div>
         </div>
       </div>

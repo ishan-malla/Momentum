@@ -12,20 +12,31 @@ import Analytics from "./pages/Analytics";
 import Social from "./pages/Social";
 import Achievments from "./pages/Achievments";
 import Settings from "./pages/Settings";
+import RequireAuth from "./components/auth/RequireAuth";
+import RequireAdmin from "./components/auth/RequireAdmin";
+import Admin from "./pages/Admin";
 
 function App() {
   return (
     <>
       <Routes>
-        <Route path="/" element={<AppLayout />}>
-          <Route path="/home" element={<Home />} />
-          <Route path="/habits" element={<Habits />} />
-          <Route path="/timer" element={<Timer />} />
-          <Route path="/task-calendar" element={<TaskCalendar />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/social" element={<Social />} />
-          <Route path="/achievments" element={<Achievments />}></Route>
-          <Route path="/settings" element={<Settings />}></Route>
+        <Route element={<RequireAuth />}>
+          <Route path="/" element={<AppLayout />}>
+            <Route path="/home" element={<Home />} />
+            <Route path="/habits" element={<Habits />} />
+            <Route path="/timer" element={<Timer />} />
+            <Route path="/task-calendar" element={<TaskCalendar />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/social" element={<Social />} />
+            <Route path="/achievments" element={<Achievments />}></Route>
+            <Route path="/settings" element={<Settings />}></Route>
+          </Route>
+        </Route>
+
+        <Route element={<RequireAuth />}>
+          <Route element={<RequireAdmin />}>
+            <Route path="/admin" element={<Admin />} />
+          </Route>
         </Route>
 
         <Route path="/auth" element={<AuthLayout />}>

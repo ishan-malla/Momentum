@@ -17,6 +17,7 @@ const Navbar = () => {
                 : "bg-transparent hover:bg-gray-100"
             } hidden md:block `}
             variant="outline"
+            asChild
           >
             <Link to="/settings">
               <Settings className="w-5 h-5" />
@@ -30,6 +31,7 @@ const Navbar = () => {
                 : "bg-transparent hover:bg-gray-100"
             } hidden md:block `}
             variant="outline"
+            asChild
           >
             <Link to="/achievments">
               <Trophy className="w-5 h-5" />

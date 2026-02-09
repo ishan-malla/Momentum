@@ -1,6 +1,5 @@
 import { HabitCard } from "@/components/habit/habitCard";
 import GreetUser from "@/components/users/GreetUser";
-import { useState } from "react";
 
 const habitsData = [
   {

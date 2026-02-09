@@ -1,39 +1,39 @@
 import dayjs from "dayjs";
-import { HabitCompletion } from "../models/habitSchema.js";
+import { HabitCompletion, HabitTemplate } from "../models/habitSchema.js";
 
 export const streakMiddleware = async (req, res, next) => {
   try {
-    const today = dayjs().startOf("day");
+    const userId = req.user?.id;
+    if (!userId) return next();
 
-    // const habits = await HabitCompletion.find().populate({
-    //   path: "habitTemplate",
-    //   select: "name habitType frequency skipDaysInAWeek streak xp ",
-    // });
+    const yesterday = dayjs().subtract(1, "day").startOf("day").toDate();
 
-    const latestHabits = await HabitCompletion.aggregate([
-      {
-        $sort: { createdAt: -1 },
-      },
-      {
-        $group: {
-          _id: "$habitTemplate",
-          latestHabit: { $first: "$$ROOT" },
-        },
-      },
-      {
-        $replaceRoot: { newRoot: "$latestHabit" },
-      },
-    ]);
+    const habitTemplates = await HabitTemplate.find({
+      user: userId,
+      isDeleted: { $ne: true },
+    });
 
-    //calculate missed days and if missed days not 0 increment streak
+    for (const template of habitTemplates) {
+      const yesterdayHabit = await HabitCompletion.findOne({
+        habitTemplate: template._id,
+        user: userId,
+        date: yesterday,
+      });
 
-    // count the number of habit tmeplates and figure total number of habits of that day and store
-    // if habit is completed increase habit count of day and compare  total and completed to figure out completion rate
-
-    console.log(latestHabits);
+      if (
+        !yesterdayHabit ||
+        (!yesterdayHabit.completion && !yesterdayHabit.skipped)
+      ) {
+        if (template.streak !== 0) {
+          template.streak = 0;
+          await template.save();
+        }
+      }
+    }
 
     next();
   } catch (error) {
-    res.status(401).json({ message: "error at streak middleware" });
+    console.error("Streak middleware error:", error);
+    next();
   }
 };

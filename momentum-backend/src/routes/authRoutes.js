@@ -10,6 +10,7 @@ import {
   verifyOTP,
   resendOTP,
 } from "../controllers/userVerificationControlller.js";
+import { createHabit } from "../middleware/createHabitMiddleware.js";
 
 const router = express.Router();
 

@@ -38,22 +38,20 @@ const habitTemplateSchema = new mongoose.Schema(
       default: 0,
     },
 
-    totalNumberOfHabits: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-
-    xp: {
-      type: Number,
-      default: 10,
-      min: 0,
-    },
-
     streak: {
       type: Number,
       min: 0,
       default: 0,
+    },
+
+    isDeleted: {
+      type: Boolean,
+      default: false,
+    },
+
+    deletedAt: {
+      type: Date,
+      default: null,
     },
   },
   { timestamps: true },
@@ -81,14 +79,19 @@ const habitCompletionSchema = new mongoose.Schema(
       required: true,
     },
 
-    //this is the updated quantity when update request is done fromt the user this is for binary habits
+    //this is the updated quantity when update request is done from the user this is for binary habits
 
     completion: {
       type: Boolean,
       default: false,
     },
 
-    //this is the updated quantity when update request is done fromt the user this is for qualitative habits
+    skipped: {
+      type: Boolean,
+      default: false,
+    },
+
+    //this is the updated quantity when update request is done from the user this is for qualitative habits
     quantity: {
       type: Number,
       min: 0,
@@ -103,7 +106,6 @@ habitCompletionSchema.index(
   { unique: true },
 );
 
-// Export models
 export const HabitTemplate = mongoose.model(
   "HabitTemplate",
   habitTemplateSchema,

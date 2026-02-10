@@ -1,5 +1,5 @@
 import DesktopNav from "@/components/common/DesktopNav";
-import MobileNav from "@/components/common/MobileNav";
+import MobileQuickNav from "@/components/common/MobileQuickNav";
 import Navbar from "@/components/common/Navbar";
 import { Outlet } from "react-router";
 
@@ -11,10 +11,10 @@ const Layout = () => {
         <DesktopNav></DesktopNav>
       </header>
 
-      <div className="pb-20 md:pb-0">
+      <div className="pb-20 md:pb-6">
         <Outlet></Outlet>
       </div>
-      <MobileNav />
+      <MobileQuickNav />
     </div>
   );
 };

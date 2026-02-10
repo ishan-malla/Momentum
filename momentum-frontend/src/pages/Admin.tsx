@@ -19,7 +19,7 @@ const Admin = () => {
   };
 
   return (
-    <div className="xl:w-2/3 w-full mx-auto p-5 xl:p-0 mt-6">
+    <div className="max-w-3xl mx-auto px-4 md:px-0 mt-6">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-[24px] sm:text-[28px] font-serif font-semibold text-foreground">

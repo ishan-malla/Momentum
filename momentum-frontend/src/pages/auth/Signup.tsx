@@ -22,7 +22,7 @@ const signupSchema = z
     password: z
       .string()
       .min(6, { message: "Password must be at least 6 characters" })
-      .max(10, { message: "Password must be at most 10 characters" })
+      .max(15, { message: "Password must be at most 15 characters" })
       .regex(/[A-Z]/, "Must contain at least one uppercase letter")
       .regex(/[0-9]/, "Must contain at least one number"),
 
@@ -49,9 +49,10 @@ const Signup = () => {
   const onSubmit = async (data: SignupFormInputs) => {
     setServerMessage(null);
     try {
+      const normalizedEmail = data.email.trim().toLowerCase();
       const result = await signup({
         username: data.name,
-        email: data.email,
+        email: normalizedEmail,
         password: data.password,
         role: "user",
       }).unwrap();
@@ -59,7 +60,8 @@ const Signup = () => {
         description: "Check your email for the verification code (OTP).",
       });
       setServerMessage(result.message);
-      navigate("/auth/login", { replace: true });
+      sessionStorage.setItem("pendingVerifyEmail", normalizedEmail);
+      navigate("/auth/login", { replace: true, state: { email: normalizedEmail } });
     } catch (error) {
       if (typeof error === "object" && error && "data" in error) {
         const maybeData = (error as { data?: unknown }).data;

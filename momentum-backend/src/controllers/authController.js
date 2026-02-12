@@ -16,6 +16,7 @@ const toSafeUser = (user) => ({
   email: user.email,
   username: user.username,
   role: user.role,
+  isVerified: user.isVerified,
 });
 
 // Signup

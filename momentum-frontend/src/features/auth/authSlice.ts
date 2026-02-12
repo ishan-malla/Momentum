@@ -6,6 +6,7 @@ export type User = {
   username: string;
   email: string;
   role: "user" | "admin";
+  isVerified: boolean;
 };
 export type AuthState = {
   user: User | null;
@@ -22,6 +23,7 @@ const authSlice = createSlice({
       state.user = user;
       state.token = token;
     },
+
     logOut: (state) => {
       state.user = null;
       state.token = null;

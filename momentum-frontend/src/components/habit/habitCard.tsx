@@ -93,6 +93,7 @@ export const HabitCard = ({
   const isComplete =
     habit.type === "quantitative" ? current >= (habit.target || 0) : completed;
   const isDisabledBySkip = skippedToday && !isComplete;
+  const showSkippedLabel = skippedToday && !isComplete;
 
   return (
     <div
@@ -105,11 +106,18 @@ export const HabitCard = ({
           <button
             className={`h-6 w-6 shrink-0 rounded flex items-center justify-center transition-colors ${
               isComplete
-                ? "bg-primary text-primary-foreground"
+                ? "bg-muted text-muted-foreground"
                 : "border-2 border-input hover:border-primary"
             }`}
             onClick={handleToggle}
             disabled={isDisabledBySkip}
+            title={
+              isDisabledBySkip
+                ? "Skipped today"
+                : isComplete
+                  ? "Completed"
+                  : "Mark complete"
+            }
           >
             {isComplete && <Check className="h-3.5 w-3.5" />}
           </button>
@@ -123,11 +131,18 @@ export const HabitCard = ({
                 ? habit.type === "binary"
                   ? "line-through text-muted-foreground"
                   : "text-muted-foreground"
-                : "text-foreground",
+                : showSkippedLabel
+                  ? "text-muted-foreground"
+                  : "text-foreground",
             ].join(" ")}
           >
             {habit.name}
           </h4>
+          {showSkippedLabel && (
+            <p className="mt-1 text-[10px] sm:text-[11px] leading-none text-muted-foreground/60">
+              Skipped today
+            </p>
+          )}
           {showSkips && (
             <p className="mt-1 text-[10px] sm:text-[11px] leading-none text-muted-foreground/60">
               Skips left this week: {skipsLeftThisWeek}/{skipsPerWeek}

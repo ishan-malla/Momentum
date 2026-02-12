@@ -41,6 +41,7 @@ const Login = () => {
     try {
       const result = await login(data).unwrap();
       dispatch(setCredentials({ user: result.user, token: result.token }));
+      sessionStorage.removeItem("pendingVerifyEmail");
       reset();
       toast.success("Logged in", {
         description: `Welcome back, ${result.user.username}`,
@@ -65,8 +66,23 @@ const Login = () => {
         ) {
           const message = (maybeData as { message: string }).message;
           if (message.toLowerCase().includes("not verified")) {
+            const emailFromServer =
+              "email" in maybeData &&
+              typeof (maybeData as { email?: unknown }).email === "string"
+                ? ((maybeData as { email: string }).email ?? "")
+                : "";
+            const from =
+              (location.state as { from?: string } | null)?.from ?? "/home";
+            const nextEmail = (emailFromServer || data.email)
+              .trim()
+              .toLowerCase();
+            sessionStorage.setItem("pendingVerifyEmail", nextEmail);
             toast.warning("Email not verified", {
-              description: "Please verify your email before logging in.",
+              description: "Enter the OTP to verify your email.",
+            });
+            navigate("/auth/otp", {
+              replace: true,
+              state: { email: nextEmail, from, autoResend: true },
             });
           } else {
             toast.error("Login failed", { description: message });

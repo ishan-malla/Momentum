@@ -1,11 +1,15 @@
 import { Navigate, Outlet, useLocation } from "react-router";
 import { useSelector } from "react-redux";
-import { selectCurrentToken } from "@/features/auth/authSlice";
+import {
+  selectCurrentToken,
+  selectCurrentUser,
+} from "@/features/auth/authSlice";
 import { useEffect } from "react";
 import { useRefreshMutation } from "@/features/auth/authApiSlice";
 
 const RequireAuth = () => {
   const token = useSelector(selectCurrentToken);
+  const user = useSelector(selectCurrentUser);
   const location = useLocation();
   const [refresh, { isLoading, isUninitialized }] = useRefreshMutation();
 
@@ -24,6 +28,10 @@ const RequireAuth = () => {
     return <Navigate to="/auth/login" replace state={{ from }} />;
   }
 
+  if (!user?.isVerified) {
+    const from = `${location.pathname}${location.search}`;
+    return <Navigate to="/auth/otp" replace state={{ from }} />;
+  }
   return <Outlet />;
 };
 

@@ -6,13 +6,16 @@ import type { ResetCase } from "./ResetPassword";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useResetPasswordMutation } from "@/features/auth/authApiSlice";
+import { toast } from "sonner";
+import { useNavigate } from "react-router";
 
 const passwordSchema = z
   .object({
     newPassword: z
       .string()
       .min(6, { message: "Password must be at least 6 characters" })
-      .max(10, { message: "Password must be at most 10 characters" })
+      .max(15, { message: "Password must be at most 15 characters" })
       .regex(/[a-z]/, "Must contain at least one lowercase letter")
       .regex(/[A-Z]/, "Must contain at least one uppercase letter")
       .regex(/[0-9]/, "Must contain at least one number"),
@@ -28,9 +31,12 @@ type PasswordFormInputs = z.infer<typeof passwordSchema>;
 
 type ChangePasswordProps = {
   setResetState: React.Dispatch<React.SetStateAction<ResetCase>>;
+  email: string;
 };
 
-const ChangePassword = ({ setResetState }: ChangePasswordProps) => {
+const ChangePassword = ({ setResetState, email }: ChangePasswordProps) => {
+  const navigate = useNavigate();
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
   const {
     register,
     handleSubmit,
@@ -39,10 +45,39 @@ const ChangePassword = ({ setResetState }: ChangePasswordProps) => {
     resolver: zodResolver(passwordSchema),
   });
 
-  const onSubmit = (data: PasswordFormInputs) => {
-    console.log(data);
-    // Reset password logic here
-    // Then redirect to login or show success message
+  const onSubmit = async (data: PasswordFormInputs) => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      toast.error("Missing email", { description: "Please go back and enter your email." });
+      setResetState("EnterEmail");
+      return;
+    }
+
+    try {
+      await resetPassword({
+        email: normalizedEmail,
+        newPassword: data.newPassword,
+      }).unwrap();
+      toast.success("Password updated", { description: "You can now log in." });
+      sessionStorage.removeItem("pendingResetEmail");
+      navigate("/auth/login", { replace: true });
+    } catch (error) {
+      if (typeof error === "object" && error && "data" in error) {
+        const maybeData = (error as { data?: unknown }).data;
+        if (
+          typeof maybeData === "object" &&
+          maybeData &&
+          "message" in maybeData &&
+          typeof (maybeData as { message?: unknown }).message === "string"
+        ) {
+          toast.error("Reset failed", {
+            description: (maybeData as { message: string }).message,
+          });
+          return;
+        }
+      }
+      toast.error("Reset failed", { description: "Please try again." });
+    }
   };
 
   return (
@@ -109,8 +144,12 @@ const ChangePassword = ({ setResetState }: ChangePasswordProps) => {
             )}
           </div>
 
-          <Button type="submit" className="w-full font-franklin">
-            Reset Password
+          <Button
+            type="submit"
+            className="w-full font-franklin"
+            disabled={isLoading}
+          >
+            {isLoading ? "Resetting..." : "Reset Password"}
           </Button>
         </div>
       </div>

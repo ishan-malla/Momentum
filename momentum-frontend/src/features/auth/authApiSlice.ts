@@ -24,6 +24,30 @@ export type SignupRequest = {
   password: string;
   role: "user" | "admin";
 };
+
+export type verifyOTPRequest = {
+  email: string;
+  otp: string;
+};
+
+export type ResendOtpRequest = {
+  email: string;
+};
+
+export type ForgetPasswordRequest = {
+  email: string;
+};
+
+export type VerifyResetOtpRequest = {
+  email: string;
+  otp: string;
+};
+
+export type ResetPasswordRequest = {
+  email: string;
+  newPassword: string;
+};
+
 export const authApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation<AuthResponse, LoginRequest>({
@@ -54,6 +78,50 @@ export const authApiSlice = apiSlice.injectEndpoints({
         }
       },
     }),
+
+    verifyOTP: builder.mutation<AuthResponse, verifyOTPRequest>({
+      query: (body) => ({
+        url: "/auth/verify-otp",
+        method: "POST",
+        body,
+      }),
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setCredentials({ user: data.user, token: data.token }));
+        } catch {
+          // no-op
+        }
+      },
+    }),
+    resendOTP: builder.mutation<{ message: string }, ResendOtpRequest>({
+      query: (body) => ({
+        url: "/auth/resend-otp",
+        method: "POST",
+        body,
+      }),
+    }),
+    forgetPassword: builder.mutation<{ message: string }, ForgetPasswordRequest>({
+      query: (body) => ({
+        url: "/auth/forget-password",
+        method: "POST",
+        body,
+      }),
+    }),
+    verifyResetOTP: builder.mutation<{ message: string }, VerifyResetOtpRequest>({
+      query: (body) => ({
+        url: "/auth/verify-reset-otp",
+        method: "POST",
+        body,
+      }),
+    }),
+    resetPassword: builder.mutation<{ message: string }, ResetPasswordRequest>({
+      query: (body) => ({
+        url: "/auth/reset-password",
+        method: "POST",
+        body,
+      }),
+    }),
     logout: builder.mutation<{ message: string }, void>({
       query: () => ({
         url: "/auth/logout",
@@ -75,4 +143,9 @@ export const {
   useSignupMutation,
   useRefreshMutation,
   useLogoutMutation,
+  useVerifyOTPMutation,
+  useResendOTPMutation,
+  useForgetPasswordMutation,
+  useVerifyResetOTPMutation,
+  useResetPasswordMutation,
 } = authApiSlice;

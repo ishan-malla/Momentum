@@ -3,6 +3,7 @@ import Home from "./pages/Home";
 import AuthLayout from "./pages/auth/AuthLayout";
 import Login from "./pages/auth/Login";
 import Signup from "./pages/auth/Signup";
+import VerifyEmailOtp from "./pages/auth/VerifyEmailOtp";
 import ForgetPassword from "./pages/auth/forget-password/ForgetPasswordLayout";
 import AppLayout from "./layouts/AppLayout";
 import Timer from "./pages/Timer";
@@ -42,6 +43,7 @@ function App() {
         <Route path="/auth" element={<AuthLayout />}>
           <Route path="login" element={<Login />} />
           <Route path="signup" element={<Signup />} />
+          <Route path="otp" element={<VerifyEmailOtp />} />
           <Route path="forget-password" element={<ForgetPassword />} />
         </Route>
       </Routes>

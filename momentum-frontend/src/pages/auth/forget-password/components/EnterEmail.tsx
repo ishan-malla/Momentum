@@ -7,18 +7,22 @@ import type { ResetCase } from "./ResetPassword";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForgetPasswordMutation } from "@/features/auth/authApiSlice";
+import { toast } from "sonner";
 
 const emailSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
+  email: z.email({ message: "Invalid email address" }),
 });
 
 type EmailFormInputs = z.infer<typeof emailSchema>;
 
 type EnterEmailProps = {
   setResetState: React.Dispatch<React.SetStateAction<ResetCase>>;
+  setEmail: React.Dispatch<React.SetStateAction<string>>;
 };
 
-const EnterEmail = ({ setResetState }: EnterEmailProps) => {
+const EnterEmail = ({ setResetState, setEmail }: EnterEmailProps) => {
+  const [forgetPassword, { isLoading }] = useForgetPasswordMutation();
   const {
     register,
     handleSubmit,
@@ -27,10 +31,31 @@ const EnterEmail = ({ setResetState }: EnterEmailProps) => {
     resolver: zodResolver(emailSchema),
   });
 
-  const onSubmit = (data: EmailFormInputs) => {
-    console.log(data);
-    // Send verification code here
-    setResetState("EnterOTP");
+  const onSubmit = async (data: EmailFormInputs) => {
+    const normalizedEmail = data.email.trim().toLowerCase();
+    try {
+      await forgetPassword({ email: normalizedEmail }).unwrap();
+      setEmail(normalizedEmail);
+      sessionStorage.setItem("pendingResetEmail", normalizedEmail);
+      toast.success("Code sent", { description: "Check your email." });
+      setResetState("EnterOTP");
+    } catch (error) {
+      if (typeof error === "object" && error && "data" in error) {
+        const maybeData = (error as { data?: unknown }).data;
+        if (
+          typeof maybeData === "object" &&
+          maybeData &&
+          "message" in maybeData &&
+          typeof (maybeData as { message?: unknown }).message === "string"
+        ) {
+          toast.error("Failed", {
+            description: (maybeData as { message: string }).message,
+          });
+          return;
+        }
+      }
+      toast.error("Failed", { description: "Please try again." });
+    }
   };
 
   return (
@@ -73,8 +98,12 @@ const EnterEmail = ({ setResetState }: EnterEmailProps) => {
                   <p className="text-sm text-red-400">{errors.email.message}</p>
                 )}
               </div>
-              <Button type="submit" className="w-full font-franklin">
-                Send Verification code
+              <Button
+                type="submit"
+                className="w-full font-franklin"
+                disabled={isLoading}
+              >
+                {isLoading ? "Sending..." : "Send Verification code"}
               </Button>
             </div>
           </div>

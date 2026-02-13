@@ -34,13 +34,13 @@ export default function PomodoroSettingsModal({
       onClick={onClose}
     >
       <Card
-        className="w-full max-w-md p-6 shadow-lg animate-slide-in-right"
+        className="w-full max-w-md overflow-hidden p-0 shadow-lg animate-slide-in-right"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label="Timer Settings"
       >
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-5">
           <div>
             <h3 className="text-lg font-serif font-semibold text-foreground">
               Timer Settings
@@ -61,9 +61,9 @@ export default function PomodoroSettingsModal({
           </Button>
         </div>
 
-        <div className="mt-6 space-y-4">
-          <div>
-            <label className="text-sm font-franklin font-medium text-foreground mb-2 block">
+        <div className="space-y-5 px-6 py-5">
+          <div className="space-y-2">
+            <label className="block text-sm font-franklin font-medium text-foreground">
               Focus Duration (minutes)
             </label>
             <input
@@ -77,12 +77,12 @@ export default function PomodoroSettingsModal({
                   workDurationMin: Number(e.target.value),
                 })
               }
-              className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground font-stat"
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-foreground font-stat outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20"
             />
           </div>
 
-          <div>
-            <label className="text-sm font-franklin font-medium text-foreground mb-2 block">
+          <div className="space-y-2">
+            <label className="block text-sm font-franklin font-medium text-foreground">
               Break Duration (minutes)
             </label>
             <input
@@ -96,12 +96,12 @@ export default function PomodoroSettingsModal({
                   breakDurationMin: Number(e.target.value),
                 })
               }
-              className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground font-stat"
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-foreground font-stat outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20"
             />
           </div>
 
-          <div>
-            <label className="text-sm font-franklin font-medium text-foreground mb-2 block">
+          <div className="space-y-2">
+            <label className="block text-sm font-franklin font-medium text-foreground">
               Long Break Duration (minutes)
             </label>
             <input
@@ -115,12 +115,12 @@ export default function PomodoroSettingsModal({
                   longBreakDurationMin: Number(e.target.value),
                 })
               }
-              className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground font-stat"
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-foreground font-stat outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20"
             />
           </div>
 
-          <div>
-            <label className="text-sm font-franklin font-medium text-foreground mb-2 block">
+          <div className="space-y-2">
+            <label className="block text-sm font-franklin font-medium text-foreground">
               Sessions Until Long Break
             </label>
             <input
@@ -134,12 +134,12 @@ export default function PomodoroSettingsModal({
                   sessionsUntilLongBreak: Number(e.target.value),
                 })
               }
-              className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground font-stat"
+              className="h-10 w-full rounded-md border border-input bg-background px-3 text-foreground font-stat outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20"
             />
           </div>
         </div>
 
-        <div className="mt-6 flex items-center justify-end gap-3">
+        <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">
           <Button type="button" variant="outline" onClick={onClose}>
             Cancel
           </Button>
@@ -151,4 +151,3 @@ export default function PomodoroSettingsModal({
     </div>
   );
 }
-

@@ -106,7 +106,7 @@ export const habitProgress = async (req, res) => {
       user: userId,
     }).populate({
       path: "habitTemplate",
-      select: "habitType frequency skipDaysInAweek isDeleted",
+      select: "habitType frequency skipDaysInAweek streak isDeleted",
     });
 
     if (!habit) {
@@ -132,15 +132,23 @@ export const habitProgress = async (req, res) => {
     }
 
     const habitType = habit.habitTemplate.habitType;
+    let streakChanged = false;
 
     if (habitType === "binary") {
       if (delta === 1 && !habit.completion) {
         habit.completion = true;
         user.totalXp += 10;
+        habit.habitTemplate.streak = (habit.habitTemplate.streak ?? 0) + 1;
+        streakChanged = true;
       }
       if (delta === -1 && habit.completion) {
         habit.completion = false;
         user.totalXp -= 10;
+        habit.habitTemplate.streak = Math.max(
+          0,
+          (habit.habitTemplate.streak ?? 0) - 1,
+        );
+        streakChanged = true;
       }
     }
 
@@ -165,15 +173,25 @@ export const habitProgress = async (req, res) => {
       if (newQuantity === maxFrequency && !wasComplete) {
         habit.completion = true;
         user.totalXp += 10;
+        habit.habitTemplate.streak = (habit.habitTemplate.streak ?? 0) + 1;
+        streakChanged = true;
       }
       if (newQuantity < maxFrequency && wasComplete) {
         habit.completion = false;
         user.totalXp -= 10;
+        habit.habitTemplate.streak = Math.max(
+          0,
+          (habit.habitTemplate.streak ?? 0) - 1,
+        );
+        streakChanged = true;
       }
     }
 
     await habit.save();
     await user.save();
+    if (streakChanged) {
+      await habit.habitTemplate.save();
+    }
 
     return res.status(200).json({
       message: "Habit progress updated successfully",

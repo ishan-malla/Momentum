@@ -2,6 +2,11 @@ import User from "../models/userSchema.js";
 import { HabitCompletion, HabitTemplate } from "../models/habitSchema.js";
 import mongoose from "mongoose";
 import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc.js";
+import timezone from "dayjs/plugin/timezone.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 export const getHabitTemplate = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -44,7 +49,7 @@ export const getHabitTemplateById = async (req, res) => {
 
 export const createHabitTemplate = async (req, res) => {
   try {
-    const today = dayjs().startOf("day");
+    const today = dayjs().tz("Asia/Kathmandu").startOf("day");
     const { name, habitType, frequency, skipDaysInAWeek } = req.body;
     const userId = req.user.id;
 
@@ -64,14 +69,17 @@ export const createHabitTemplate = async (req, res) => {
         .json({ message: "quantitative habits must have a frequency" });
 
     if (habitType === "quantitative" && frequency === 0)
-      return res.status(200).json({
+      return res.status(400).json({
         message: "frequency of quantitative habit must be greater than 0",
       });
 
-    if (skipDaysInAWeek > 7)
+    if (skipDaysInAWeek > 6)
       return res.status(400).json({ message: "skip days must be less than 7" });
 
-    const habit = await HabitTemplate.Documents({ user: userId });
+    const habit = await HabitTemplate.countDocuments({
+      user: userId,
+      isDeleted: { $ne: true },
+    });
 
     if (habit >= 8)
       return res

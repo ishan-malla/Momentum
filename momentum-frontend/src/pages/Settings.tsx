@@ -37,7 +37,7 @@ const Settings = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 md:px-0 mt-6">
+    <div className="w-full md:w-2/3 max-w-5xl mx-auto px-4 md:px-0 mt-6">
       <div className="space-y-6 sm:space-y-8 animate-fade-in">
         <div>
           <h2 className="text-[24px] sm:text-[28px] font-serif font-semibold text-foreground">

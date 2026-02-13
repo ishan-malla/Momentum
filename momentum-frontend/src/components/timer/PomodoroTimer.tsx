@@ -152,30 +152,36 @@ export default function PomodoroTimer() {
       />
 
       <main className="mx-auto w-full max-w-5xl space-y-8 px-4 py-8 md:w-2/3 md:px-0">
-        <PomodoroTimerCard
-          mode={mode}
-          isRunning={isRunning}
-          displayMinutes={displayMinutes}
-          displaySeconds={displaySeconds}
-          ringRadius={ringRadius}
-          ringCircumference={ringCircumference}
-          ringOffset={ringOffset}
-          soundEnabled={soundEnabled}
-          workDurationMin={workDurationMin}
-          breakDurationMin={breakDurationMin}
-          onStartPause={onStartPause}
-          onReset={onReset}
-          onToggleSound={() => setSoundEnabled((v) => !v)}
-          onSwitchToFocus={switchToFocus}
-          onSwitchToBreak={switchToBreak}
-        />
+        <div className="animate-drop-in" style={{ animationDelay: "0ms" }}>
+          <PomodoroTimerCard
+            mode={mode}
+            isRunning={isRunning}
+            displayMinutes={displayMinutes}
+            displaySeconds={displaySeconds}
+            ringRadius={ringRadius}
+            ringCircumference={ringCircumference}
+            ringOffset={ringOffset}
+            soundEnabled={soundEnabled}
+            workDurationMin={workDurationMin}
+            breakDurationMin={breakDurationMin}
+            onStartPause={onStartPause}
+            onReset={onReset}
+            onToggleSound={() => setSoundEnabled((v) => !v)}
+            onSwitchToFocus={switchToFocus}
+            onSwitchToBreak={switchToBreak}
+          />
+        </div>
 
-        <PomodoroStats
-          sessionsCompleted={sessionsCompleted}
-          workDurationMin={workDurationMin}
-        />
+        <div className="animate-drop-in" style={{ animationDelay: "70ms" }}>
+          <PomodoroStats
+            sessionsCompleted={sessionsCompleted}
+            workDurationMin={workDurationMin}
+          />
+        </div>
 
-        <TodaysSessions sessions={sessions} />
+        <div className="animate-drop-in" style={{ animationDelay: "140ms" }}>
+          <TodaysSessions sessions={sessions} />
+        </div>
       </main>
     </div>
   );

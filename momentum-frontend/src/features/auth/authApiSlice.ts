@@ -101,14 +101,20 @@ export const authApiSlice = apiSlice.injectEndpoints({
         body,
       }),
     }),
-    forgetPassword: builder.mutation<{ message: string }, ForgetPasswordRequest>({
+    forgetPassword: builder.mutation<
+      { message: string },
+      ForgetPasswordRequest
+    >({
       query: (body) => ({
         url: "/auth/forget-password",
         method: "POST",
         body,
       }),
     }),
-    verifyResetOTP: builder.mutation<{ message: string }, VerifyResetOtpRequest>({
+    verifyResetOTP: builder.mutation<
+      { message: string },
+      VerifyResetOtpRequest
+    >({
       query: (body) => ({
         url: "/auth/verify-reset-otp",
         method: "POST",

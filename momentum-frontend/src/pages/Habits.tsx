@@ -3,7 +3,7 @@ import { mockHabits } from "@/data/mockHabits";
 
 const HabitsList = () => {
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 animate-fade-in">
       {mockHabits.map((habit) => (
         <HabitCard key={habit.id} habit={habit} />
       ))}

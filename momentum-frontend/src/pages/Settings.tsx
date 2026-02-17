@@ -37,10 +37,10 @@ const Settings = () => {
   };
 
   return (
-    <div className="w-full md:w-2/3 max-w-5xl mx-auto px-4 md:px-0 mt-6">
+    <div className="mx-auto mt-6 w-full xl:max-w-5xl px-4 sm:px-5 xl:px-0 lg:pr-[33.3333%]">
       <div className="space-y-6 sm:space-y-8 animate-fade-in">
         <div>
-          <h2 className="text-[24px] sm:text-[28px] font-serif font-semibold text-foreground">
+          <h2 className="text-[20px] sm:text-[24px] lg:text-[28px] font-serif font-semibold text-foreground">
             Settings & Profile
           </h2>
           <p className="text-sm text-muted-foreground mt-1">
@@ -50,7 +50,7 @@ const Settings = () => {
 
         <div className="bg-card border border-border rounded-lg p-6">
             <div className="flex items-center justify-between gap-4">
-              <h3 className="text-[16px] font-serif font-medium text-foreground">
+              <h3 className="text-[15px] font-serif font-medium text-foreground sm:text-[16px]">
                 Profile Information
               </h3>
               <Button
@@ -64,7 +64,7 @@ const Settings = () => {
           </div>
 
           <div className="flex items-center gap-5 mt-5">
-              <div className="h-20 w-20 rounded-full bg-primary/20 text-primary flex items-center justify-center font-franklin font-bold text-[28px]">
+              <div className="h-20 w-20 rounded-full bg-primary/20 text-primary flex items-center justify-center font-franklin font-bold text-[24px] sm:text-[28px]">
                 {avatarLetter}
               </div>
               <div className="flex-1">
@@ -118,7 +118,7 @@ const Settings = () => {
         </div>
 
         <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-[16px] font-serif font-medium text-foreground mb-4">
+          <h3 className="text-[15px] font-serif font-medium text-foreground mb-4 sm:text-[16px]">
             Account
           </h3>
           <Button

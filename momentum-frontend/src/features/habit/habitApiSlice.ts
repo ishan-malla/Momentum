@@ -32,6 +32,29 @@ type SkipInfoResponse = {
   skipsRemaining: number;
 };
 
+export type HabitHeatMapBounds = {
+  minYear: number;
+  minMonth: number;
+  maxYear: number;
+  maxMonth: number;
+  canGoPrev: boolean;
+  canGoNext: boolean;
+};
+
+export type HabitHeatMapResponse = {
+  year: number;
+  month: number;
+  totalDays: number;
+  hasData: boolean;
+  progressData: number[];
+  bounds: HabitHeatMapBounds;
+};
+
+type HabitHeatMapQuery = {
+  year?: number;
+  month?: number;
+};
+
 export type CreateHabitTemplateRequest = {
   name: string;
   habitType: HabitType;
@@ -100,6 +123,20 @@ export const habitApiSlice = apiSlice.injectEndpoints({
       providesTags: ["Habits"],
     }),
 
+    getHabitHeatMap: builder.query<
+      HabitHeatMapResponse,
+      HabitHeatMapQuery | undefined
+    >(
+      {
+        query: (params) => ({
+          url: "/habit-heatmap",
+          method: "GET",
+          params: params ?? undefined,
+        }),
+        providesTags: ["Habits"],
+      },
+    ),
+
     deleteHabitTemplate: builder.mutation<
       MessageResponse,
       { habitTemplateId: string }
@@ -119,5 +156,6 @@ export const {
   useUpdateHabitProgressMutation,
   useUpdateSkipHabitMutation,
   useGetSkipInfoQuery,
+  useGetHabitHeatMapQuery,
   useDeleteHabitTemplateMutation,
 } = habitApiSlice;

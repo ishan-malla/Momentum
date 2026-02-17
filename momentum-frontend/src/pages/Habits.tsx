@@ -1,8 +1,11 @@
+import { useState } from "react";
+import HabitHeatMap from "@/components/calendar/HabitHeatMap";
 import CreateHabitModal from "@/components/habit/CreateHabitModal";
 import DeleteHabitConfirmModal from "@/components/habit/DeleteHabitConfirmModal";
 import HabitListSection from "@/components/habit/HabitListSection";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { useGetHabitHeatMapQuery } from "@/features/habit/habitApiSlice";
 import { useHabitCreate } from "@/features/habit/useHabitCreate";
 import { useHabitInteractions } from "@/features/habit/useHabitInteractions";
 import { Plus } from "lucide-react";
@@ -35,10 +38,31 @@ const Habits = () => {
     handleCreateHabit,
   } = useHabitCreate();
 
+  const now = new Date();
+  const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth());
+
+  const { data: heatMapData, isLoading: isHeatMapLoading } =
+    useGetHabitHeatMapQuery({
+      year: selectedYear,
+      month: selectedMonth,
+    });
+
+  const handleMonthChange = (year: number, month: number) => {
+    setSelectedYear(year);
+    setSelectedMonth(month);
+  };
+
+  const handleTodayClick = () => {
+    const current = new Date();
+    setSelectedYear(current.getFullYear());
+    setSelectedMonth(current.getMonth());
+  };
+
   return (
-    <div className="mx-auto mt-6 w-full max-w-5xl space-y-4 px-4 md:w-2/3 md:px-0">
+    <div className="mx-auto mt-6 w-full xl:max-w-5xl space-y-4 px-4 sm:px-5 xl:px-0 lg:pr-[33.3333%]">
       <div className="flex items-start justify-between gap-3">
-        <h2 className="text-[24px] font-serif font-semibold text-foreground sm:text-[28px]">
+        <h2 className="text-[20px] font-serif font-semibold text-foreground sm:text-[24px] lg:text-[28px]">
           Today&apos;s Habits
         </h2>
         <Button
@@ -67,11 +91,19 @@ const Habits = () => {
       />
 
       <Card className="py-5">
-        <CardHeader className="px-5 pb-2 sm:px-6">
-          <CardTitle className="text-[16px] font-serif">Habit Heatmap</CardTitle>
-        </CardHeader>
-        <CardContent className="px-5 pt-0 sm:px-6">
-          <div className="h-28 rounded-lg border border-dashed border-border bg-muted/30" />
+        <CardContent className="px-5 sm:px-6">
+          <HabitHeatMap
+            year={heatMapData?.year ?? selectedYear}
+            month={heatMapData?.month ?? selectedMonth}
+            progressData={heatMapData?.progressData ?? []}
+            hasData={heatMapData?.hasData ?? !isHeatMapLoading}
+            minYear={heatMapData?.bounds.minYear ?? selectedYear}
+            minMonth={heatMapData?.bounds.minMonth ?? selectedMonth}
+            maxYear={heatMapData?.bounds.maxYear ?? selectedYear}
+            maxMonth={heatMapData?.bounds.maxMonth ?? selectedMonth}
+            onMonthChange={handleMonthChange}
+            onTodayClick={handleTodayClick}
+          />
         </CardContent>
       </Card>
 

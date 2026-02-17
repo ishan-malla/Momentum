@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import type { HabitType } from "@/features/habit/habitApiSlice";
 import type { CreateHabitDraft } from "@/features/habit/createHabitDraft";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,11 @@ type CreateHabitModalProps = {
   onSubmit: () => void;
 };
 
+const HABIT_TYPE_OPTIONS: Array<{ value: HabitType; label: string }> = [
+  { value: "binary", label: "Binary (done / not done)" },
+  { value: "quantitative", label: "Quantitative (count based)" },
+];
+
 const CreateHabitModal = ({
   open,
   draft,
@@ -22,6 +28,50 @@ const CreateHabitModal = ({
   onClose,
   onSubmit,
 }: CreateHabitModalProps) => {
+  const [habitTypeMenuOpen, setHabitTypeMenuOpen] = useState(false);
+  const habitTypeMenuRef = useRef<HTMLDivElement>(null);
+
+  const habitTypeLabel =
+    HABIT_TYPE_OPTIONS.find((option) => option.value === draft.habitType)?.label ??
+    HABIT_TYPE_OPTIONS[0].label;
+
+  useEffect(() => {
+    if (!open) {
+      setHabitTypeMenuOpen(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    if (!habitTypeMenuOpen) return;
+
+    const handleOutsideClick = (event: MouseEvent) => {
+      if (habitTypeMenuRef.current?.contains(event.target as Node)) return;
+      setHabitTypeMenuOpen(false);
+    };
+
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setHabitTypeMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, [habitTypeMenuOpen]);
+
+  const handleHabitTypeChange = (habitType: HabitType) => {
+    onChange({
+      ...draft,
+      habitType,
+    });
+    setHabitTypeMenuOpen(false);
+  };
+
   if (!open) return null;
 
   return (
@@ -79,21 +129,46 @@ const CreateHabitModal = ({
             <label className="mb-2 block text-sm font-franklin font-medium text-foreground">
               Habit Type
             </label>
-            <div className="relative">
-              <select
-                value={draft.habitType}
-                onChange={(event) =>
-                  onChange({
-                    ...draft,
-                    habitType: event.target.value as HabitType,
-                  })
-                }
-                className="h-9 w-full appearance-none rounded-md border border-input bg-card px-3 pr-9 text-sm text-foreground outline-none transition-[color,box-shadow] hover:bg-muted/40 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20"
+            <div className="relative" ref={habitTypeMenuRef}>
+              <button
+                type="button"
+                onClick={() => setHabitTypeMenuOpen((current) => !current)}
+                className="flex h-9 w-full items-center justify-between rounded-md border border-input bg-card px-3 pr-9 text-sm text-foreground outline-none transition-[color,box-shadow] hover:bg-muted/40 focus-visible:ring-[3px] focus-visible:ring-border/40"
+                aria-haspopup="listbox"
+                aria-expanded={habitTypeMenuOpen}
+                aria-label="Select habit type"
               >
-                <option value="binary">Binary (done / not done)</option>
-                <option value="quantitative">Quantitative (count based)</option>
-              </select>
+                <span>{habitTypeLabel}</span>
+              </button>
               <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+
+              {habitTypeMenuOpen && (
+                <div
+                  role="listbox"
+                  aria-label="Habit type options"
+                  className="absolute left-0 top-full z-20 mt-0.5 w-full overflow-hidden rounded-md border border-border bg-popover p-1 shadow-md animate-drop-in"
+                >
+                  {HABIT_TYPE_OPTIONS.map((option) => {
+                    const isSelected = draft.habitType === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        type="button"
+                        role="option"
+                        aria-selected={isSelected}
+                        onClick={() => handleHabitTypeChange(option.value)}
+                        className={`flex w-full items-center rounded-sm px-2 py-1.5 text-left text-sm transition-colors ${
+                          isSelected
+                            ? "bg-muted text-foreground"
+                            : "text-foreground hover:bg-muted/60"
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 

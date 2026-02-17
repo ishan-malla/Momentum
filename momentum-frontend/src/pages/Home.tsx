@@ -24,8 +24,8 @@ const Home = () => {
   return (
     <div>
       <GreetUser />
-      <section className="mx-auto mt-6 w-full max-w-5xl space-y-4 px-4 md:w-2/3 md:px-0">
-        <h3 className="text-[24px] font-serif font-semibold text-foreground">
+      <section className="mx-auto mt-6 w-full xl:max-w-5xl space-y-4 px-4 sm:px-5 xl:px-0 lg:pr-[33.3333%]">
+        <h3 className="text-[20px] font-serif font-semibold text-foreground sm:text-[24px] lg:text-[28px]">
           Today&apos;s Habits
         </h3>
 

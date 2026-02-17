@@ -10,7 +10,7 @@ const navItems = [
 const MobileQuickNav = () => {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card md:hidden">
-      <div className="mx-auto flex max-w-5xl items-center justify-around px-4 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
+      <div className="mx-auto flex xl:max-w-5xl items-center justify-around px-4 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
         {navItems.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}

@@ -11,7 +11,7 @@ const Navbar = () => {
 
   useEffect(() => {
     setOpen(false);
-  }, [pathname]);
+  }, [pathname, setOpen]);
 
   const navItems = useMemo(() => {
     const items = [
@@ -34,8 +34,8 @@ const Navbar = () => {
 
   return (
     <div className="border-b border-border bg-card h-16 md:h-22 flex items-center relative">
-      <div className="max-w-5xl flex justify-between w-full px-4 sm:px-5 xl:px-0 items-center h-full mx-auto">
-        <h1 className="text-base sm:text-lg md:text-3xl font-semibold font-elegant tracking-tight">
+      <div className="xl:max-w-5xl flex justify-between w-full px-4 sm:px-5 xl:px-0 items-center h-full mx-auto">
+        <h1 className="text-base font-semibold font-elegant tracking-tight sm:text-lg md:text-2xl lg:text-3xl">
           Momentum
         </h1>
         <div className="flex gap-2 sm:gap-5 items-center">
@@ -87,7 +87,7 @@ const Navbar = () => {
             aria-hidden="true"
           />
           <div className="absolute left-0 right-0 top-full z-50 md:hidden border-b border-border bg-card">
-            <div className="max-w-5xl mx-auto px-4 py-3">
+            <div className="xl:max-w-5xl mx-auto px-4 py-3">
               <div className="grid gap-1">
                 {navItems.map(({ to, label, end }) => (
                   <NavLink

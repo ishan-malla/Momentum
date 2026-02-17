@@ -33,10 +33,25 @@ export const useHabitInteractions = () => {
 
   const noHabitsForToday = readHabitErrorStatus(habitsError) === 404;
   const hasQueryError = Boolean(habitsError) && !noHabitsForToday;
-  const habits = useMemo(
-    () => (noHabitsForToday ? [] : habitsData ?? []),
-    [habitsData, noHabitsForToday],
-  );
+  const habits = useMemo(() => {
+    const source = noHabitsForToday ? [] : habitsData ?? [];
+
+    return source
+      .map((habit, index) => ({ habit, index }))
+      .sort((a, b) => {
+        const aType = a.habit.habitTemplate.habitType;
+        const bType = b.habit.habitTemplate.habitType;
+        const aGroup = aType === "binary" ? 0 : 1;
+        const bGroup = bType === "binary" ? 0 : 1;
+
+        if (aGroup !== bGroup) {
+          return aGroup - bGroup;
+        }
+
+        return a.index - b.index;
+      })
+      .map((entry) => entry.habit);
+  }, [habitsData, noHabitsForToday]);
 
   const actionsDisabled =
     isHabitsFetching || isUpdatingProgress || isUpdatingSkip || isDeletingHabit;

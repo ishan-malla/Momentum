@@ -41,11 +41,12 @@ export const HabitCard = ({
 
   const progress =
     target > 0 ? Math.min((habit.quantity / target) * 100, 100) : 0;
+  const skipControlWidthClass = "h-7 w-7 sm:w-[76px]";
 
   return (
     <div
       className={`w-full rounded-lg border p-3 transition-all sm:p-4 ${
-        isComplete
+        isComplete && isBinary
           ? "border-border bg-muted/70"
           : "border-border/80 bg-muted/35 hover:bg-muted/45"
       } ${isSkipped ? "opacity-90" : ""}`}
@@ -74,9 +75,7 @@ export const HabitCard = ({
             className={[
               "truncate text-[14px] transition-all sm:text-[15px]",
               isComplete
-                ? isBinary
-                  ? "text-muted-foreground line-through"
-                  : "text-muted-foreground"
+                ? "text-muted-foreground/60 line-through"
                 : isSkipped
                   ? "text-muted-foreground"
                   : "text-foreground",
@@ -113,12 +112,12 @@ export const HabitCard = ({
             <Flame className="h-3.5 w-3.5 text-streak" />
           </div>
 
-          {hasSkipSupport && (
+          {hasSkipSupport ? (
             <button
               type="button"
               onClick={() => onToggleSkip?.(habit._id, !habit.skipped)}
               disabled={actionsDisabled || isComplete || noSkipsRemaining}
-              className="flex h-7 items-center gap-1 rounded-md border border-border bg-card px-2 text-[11px] text-muted-foreground/80 transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 sm:text-xs"
+              className={`flex ${skipControlWidthClass} items-center justify-center gap-1 rounded-md border border-border bg-card px-2 text-[11px] text-muted-foreground/80 transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 sm:text-xs`}
               title={
                 noSkipsRemaining
                   ? "No skips remaining"
@@ -130,6 +129,11 @@ export const HabitCard = ({
               <SkipForward className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">{habit.skipped ? "Unskip" : "Skip"}</span>
             </button>
+          ) : (
+            <span
+              aria-hidden="true"
+              className={`${skipControlWidthClass} pointer-events-none rounded-md border border-transparent opacity-0`}
+            />
           )}
 
           <button
@@ -162,7 +166,11 @@ export const HabitCard = ({
             />
           </div>
 
-          <span className="shrink-0 text-center text-xs font-medium text-foreground/80">
+          <span
+            className={`shrink-0 text-center text-xs font-medium ${
+              isComplete ? "text-muted-foreground/60" : "text-foreground/80"
+            }`}
+          >
             {habit.quantity}/{target}
           </span>
 

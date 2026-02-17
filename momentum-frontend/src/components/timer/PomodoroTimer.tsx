@@ -151,7 +151,7 @@ export default function PomodoroTimer() {
         showSettings={showSettings}
       />
 
-      <main className="mx-auto w-full max-w-5xl space-y-8 px-4 py-8 md:w-2/3 md:px-0">
+      <main className="mx-auto w-full xl:max-w-5xl space-y-8 px-4 py-8 sm:px-5 xl:px-0 lg:pr-[33.3333%]">
         <div className="animate-drop-in" style={{ animationDelay: "0ms" }}>
           <PomodoroTimerCard
             mode={mode}

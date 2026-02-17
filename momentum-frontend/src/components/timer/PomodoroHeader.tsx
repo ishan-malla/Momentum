@@ -14,9 +14,9 @@ export default function PomodoroHeader({
 }: Props) {
   return (
     <header className="bg-background">
-      <div className="mx-auto w-full max-w-5xl px-4 py-4 sm:px-6 sm:py-5 md:w-2/3 md:px-0">
+      <div className="mx-auto w-full xl:max-w-5xl px-4 py-4 sm:px-5 sm:py-5 xl:px-0 lg:pr-[33.3333%]">
         <div className="flex items-center justify-between gap-4">
-          <h1 className="text-xl font-serif font-bold text-foreground sm:text-2xl">
+          <h1 className="text-lg font-serif font-bold text-foreground sm:text-xl lg:text-2xl">
             Pomodoro Timer
           </h1>
           <Button
@@ -34,4 +34,3 @@ export default function PomodoroHeader({
     </header>
   );
 }
-

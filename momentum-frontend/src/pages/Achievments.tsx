@@ -1,7 +1,7 @@
 const Achievments = () => {
   return (
-    <div className="max-w-3xl mx-auto px-4 md:px-0 mt-6">
-      <h2 className="text-[24px] sm:text-[28px] font-serif font-semibold text-foreground">
+    <div className="mx-auto mt-6 w-full xl:max-w-5xl px-4 sm:px-5 xl:px-0 lg:pr-[33.3333%]">
+      <h2 className="text-[20px] sm:text-[24px] lg:text-[28px] font-serif font-semibold text-foreground">
         Achievements
       </h2>
     </div>

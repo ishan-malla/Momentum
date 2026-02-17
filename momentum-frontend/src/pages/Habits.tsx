@@ -38,11 +38,14 @@ const Habits = () => {
     handleCreateHabit,
   } = useHabitCreate();
 
-  const now = new Date();
-  const [selectedYear, setSelectedYear] = useState<number>(now.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState<number>(now.getMonth());
+  const [selectedYear, setSelectedYear] = useState<number>(() =>
+    new Date().getFullYear(),
+  );
+  const [selectedMonth, setSelectedMonth] = useState<number>(() =>
+    new Date().getMonth(),
+  );
 
-  const { data: heatMapData, isLoading: isHeatMapLoading } =
+  const { currentData: heatMapData, isLoading: isHeatMapLoading } =
     useGetHabitHeatMapQuery({
       year: selectedYear,
       month: selectedMonth,
@@ -92,18 +95,22 @@ const Habits = () => {
 
       <Card className="py-5">
         <CardContent className="px-5 sm:px-6">
-          <HabitHeatMap
-            year={heatMapData?.year ?? selectedYear}
-            month={heatMapData?.month ?? selectedMonth}
-            progressData={heatMapData?.progressData ?? []}
-            hasData={heatMapData?.hasData ?? !isHeatMapLoading}
-            minYear={heatMapData?.bounds.minYear ?? selectedYear}
-            minMonth={heatMapData?.bounds.minMonth ?? selectedMonth}
-            maxYear={heatMapData?.bounds.maxYear ?? selectedYear}
-            maxMonth={heatMapData?.bounds.maxMonth ?? selectedMonth}
-            onMonthChange={handleMonthChange}
-            onTodayClick={handleTodayClick}
-          />
+          {isHeatMapLoading && !heatMapData ? (
+            <div className="h-[440px] animate-pulse rounded-lg border border-border bg-muted/30" />
+          ) : (
+            <HabitHeatMap
+              year={heatMapData?.year ?? selectedYear}
+              month={heatMapData?.month ?? selectedMonth}
+              progressData={heatMapData?.progressData ?? []}
+              hasData={heatMapData?.hasData ?? false}
+              minYear={heatMapData?.bounds.minYear ?? selectedYear}
+              minMonth={heatMapData?.bounds.minMonth ?? selectedMonth}
+              maxYear={heatMapData?.bounds.maxYear ?? selectedYear}
+              maxMonth={heatMapData?.bounds.maxMonth ?? selectedMonth}
+              onMonthChange={handleMonthChange}
+              onTodayClick={handleTodayClick}
+            />
+          )}
         </CardContent>
       </Card>
 

@@ -19,31 +19,21 @@ import { heatMap } from "../controllers/habitHeatMapController.js";
 
 const router = express.Router();
 
-router.get("/habit-template", protect, getHabitTemplate);
-router.get("/habit-template/:habitTemplateId", protect, getHabitTemplateById);
-router.post("/habit-template", protect, createHabitTemplate);
-router.delete("/habit-template/:habitTemplateId", protect, deleteHabitTemplate);
+router.use(protect);
 
-router.get("/habit", protect, createHabit, streakMiddleware, getHabits);
-router.get("/habit/:habitId", protect, streakMiddleware, getHabitById);
-router.patch(
-  "/habit/:habitId/progress",
-  protect,
-  streakMiddleware,
-  habitProgress,
-);
-router.patch(
-  "/habit/:habitId/skip-habit",
-  protect,
-  streakMiddleware,
-  skipHabits,
-);
-router.get(
-  "/habit/:habitId/skip-habit",
-  protect,
-  streakMiddleware,
-  getSkipInfo,
-);
+router.get("/habit-template", getHabitTemplate);
+router.get("/habit-template/:habitTemplateId", getHabitTemplateById);
+router.post("/habit-template", createHabitTemplate);
+router.delete("/habit-template/:habitTemplateId", deleteHabitTemplate);
 
-router.get("/habit-heatmap", protect, createHabit, streakMiddleware, heatMap);
+// Ensure daily habit docs/streak reset logic are applied before any /habit endpoint.
+router.use("/habit", createHabit, streakMiddleware);
+
+router.get("/habit", getHabits);
+router.get("/habit/:habitId", getHabitById);
+router.patch("/habit/:habitId/progress", habitProgress);
+router.patch("/habit/:habitId/skip-habit", skipHabits);
+router.get("/habit/:habitId/skip-habit", getSkipInfo);
+
+router.get("/habit-heatmap", createHabit, streakMiddleware, heatMap);
 export default router;

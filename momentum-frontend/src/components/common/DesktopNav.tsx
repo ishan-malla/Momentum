@@ -33,7 +33,7 @@ const DesktopNav = () => {
 
   return (
     <div className="bg-card border-b border-border sticky hidden md:flex h-11 items-center p-5 xl:p-0">
-      <div className="w-full max-w-5xl mx-auto hidden md:flex h-full items-center justify-between space-x-4 px-4 xl:px-0">
+      <div className="w-full xl:max-w-6xl mx-auto hidden md:flex h-full items-center justify-between space-x-4 px-4 xl:px-0">
         {navLinks.map((tab, index) => {
           return (
             <Link

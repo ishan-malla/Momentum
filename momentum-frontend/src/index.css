@@ -7,17 +7,17 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: #ffffff;
+  --background: #fbfcfd;
   --foreground: #1c1917;
-  --card: #fafaf9;
+  --card: #ffffff;
   --card-foreground: #1c1917;
   --popover: #ffffff;
   --popover-foreground: #1c1917;
   --primary: #87a96b;
   --primary-foreground: #ffffff;
-  --secondary: #f5f5f4;
+  --secondary: #f3f4f6;
   --secondary-foreground: #1c1917;
-  --muted: #f5f5f4;
+  --muted: #f3f4f6;
   --muted-foreground: #57534e;
   --accent: #81b7d2;
   --accent-foreground: #1c1917;
@@ -29,8 +29,8 @@
   --streak-foreground: #ffffff;
   --destructive: #e07a5f;
   --destructive-foreground: #ffffff;
-  --border: #e5e5e4;
-  --input: #e5e5e4;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
   --ring: #87a96b;
   --radius: 0.5rem;
   --chart-1: oklch(0.646 0.222 41.116);
@@ -184,14 +184,29 @@
     }
   }
 
+  .animate-drop-in {
+    animation: dropIn 0.36s ease-out both;
+  }
+
+  @keyframes dropIn {
+    from {
+      opacity: 0;
+      transform: translateY(-14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   .animate-slide-in-right {
-    animation: slideInRight 0.4s ease-out;
+    animation: slideInRight 0.22s ease-out;
   }
 
   @keyframes slideInRight {
     from {
       opacity: 0;
-      transform: translateX(100px);
+      transform: translateX(40px);
     }
     to {
       opacity: 1;
@@ -261,7 +276,6 @@
     background: hsl(var(--muted-foreground) / 0.5);
   }
 
-  /* Added responsive breakpoint for extra small screens */
   @media (min-width: 475px) {
     .xs\:inline {
       display: inline;

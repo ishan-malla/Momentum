@@ -1,4 +1,7 @@
+import PomodoroTimer from "@/components/timer/PomodoroTimer";
+
 const Timer = () => {
-  return <div>Timer</div>;
+  return <PomodoroTimer />;
 };
+
 export default Timer;

@@ -1,6 +1,19 @@
-import type { Habit } from "@/components/habit/habitCard";
+type MockHabit = {
+  id: number;
+  name: string;
+  streak: number;
+  completed: boolean;
+  type: "binary" | "quantitative";
+  current?: number;
+  target?: number;
+  unit?: string;
+  category?: string;
+  skipsPerWeek?: number;
+  skipsUsedThisWeek?: number;
+  skippedToday?: boolean;
+};
 
-export const mockHabits = [
+export const mockHabits: MockHabit[] = [
   {
     id: 1,
     name: "Morning Meditation",
@@ -55,4 +68,4 @@ export const mockHabits = [
     skipsPerWeek: 1,
     skipsUsedThisWeek: 0,
   },
-] satisfies (Habit & { category?: string })[];
+];

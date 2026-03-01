@@ -19,10 +19,10 @@ const Admin = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 md:px-0 mt-6">
+    <div className="mx-auto mt-6 w-full xl:max-w-6xl px-4 sm:px-5 xl:px-0">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-[24px] sm:text-[28px] font-serif font-semibold text-foreground">
+          <h2 className="text-[20px] sm:text-[24px] lg:text-[28px] font-serif font-semibold text-foreground">
             Hi Admin
           </h2>
           <p className="text-sm text-muted-foreground mt-2">

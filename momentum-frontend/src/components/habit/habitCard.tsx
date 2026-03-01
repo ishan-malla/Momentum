@@ -1,210 +1,184 @@
-import { useState } from "react";
-import { Check, Plus, Minus, Trash2, Flame, SkipForward } from "lucide-react";
-
-export type Habit = {
-  id: number;
-  name: string;
-  streak: number;
-  completed: boolean;
-  type: "binary" | "quantitative";
-  current?: number;
-  target?: number;
-  unit?: string;
-  skipsPerWeek?: number;
-  skipsUsedThisWeek?: number;
-  skippedToday?: boolean;
-};
+import { Check, Flame, Minus, Plus, SkipForward, Trash2 } from "lucide-react";
+import {
+  type Habit,
+  useGetSkipInfoQuery,
+} from "@/features/habit/habitApiSlice";
 
 type HabitCardProps = {
   habit: Habit;
-  onToggle?: (id: number) => void;
-  onUpdate?: (id: number, current: number) => void;
-  onDelete?: (id: number) => void;
-  onSkip?: (id: number) => void;
+  actionsDisabled?: boolean;
+  onToggleBinary?: (habitId: string, nextCompleted: boolean) => void;
+  onUpdateQuantity?: (habitId: string, delta: 1 | -1) => void;
+  onToggleSkip?: (habitId: string, nextSkipped: boolean) => void;
+  onDelete?: (habitTemplateId: string, habitName: string) => void;
 };
 
 export const HabitCard = ({
   habit,
-  onToggle,
-  onUpdate,
+  actionsDisabled = false,
+  onToggleBinary,
+  onUpdateQuantity,
+  onToggleSkip,
   onDelete,
-  onSkip,
 }: HabitCardProps) => {
-  const [completed, setCompleted] = useState(habit.completed);
-  const [current, setCurrent] = useState(habit.current || 0);
-  const [skipsUsedThisWeek, setSkipsUsedThisWeek] = useState(
-    habit.skipsUsedThisWeek ?? 0,
-  );
-  const [skippedToday, setSkippedToday] = useState(habit.skippedToday ?? false);
+  const { habitTemplate } = habit;
+  const isBinary = habitTemplate.habitType === "binary";
+  const target = habitTemplate.frequency ?? 0;
+  const isComplete =
+    isBinary ? habit.completion : target > 0 && habit.quantity >= target;
+  const isSkipped = habit.skipped && !isComplete;
+  const hasSkipSupport = habitTemplate.skipDaysInAWeek > 0;
 
-  const handleToggle = () => {
-    const newCompleted = !completed;
-    setCompleted(newCompleted);
-    onToggle?.(habit.id);
-  };
-
-  const handleIncrement = () => {
-    if (habit.target && current < habit.target) {
-      const newCurrent = current + 1;
-      setCurrent(newCurrent);
-      onUpdate?.(habit.id, newCurrent);
-    }
-  };
-
-  const handleDecrement = () => {
-    if (current > 0) {
-      const newCurrent = current - 1;
-      setCurrent(newCurrent);
-      onUpdate?.(habit.id, newCurrent);
-    }
-  };
-
-  const handleDelete = () => {
-    if (window.confirm(`Delete "${habit.name}"?`)) {
-      onDelete?.(habit.id);
-    }
-  };
-
-  const skipsPerWeek = habit.skipsPerWeek ?? 0;
-  const skipsLeftThisWeek =
-    skipsPerWeek > 0 ? Math.max(0, skipsPerWeek - skipsUsedThisWeek) : 0;
-  const showSkips = skipsPerWeek > 0;
-
-  const handleSkip = () => {
-    if (!showSkips) return;
-
-    if (skippedToday) {
-      setSkippedToday(false);
-      setSkipsUsedThisWeek((v) => Math.max(0, v - 1));
-      onSkip?.(habit.id);
-      return;
-    }
-
-    if (skipsLeftThisWeek <= 0) return;
-    setSkippedToday(true);
-    setSkipsUsedThisWeek((v) => v + 1);
-    onSkip?.(habit.id);
-  };
+  const { data: skipInfo } = useGetSkipInfoQuery(habit._id, {
+    skip: !hasSkipSupport,
+  });
+  const skipsRemaining = skipInfo?.skipsRemaining ?? null;
+  const noSkipsRemaining =
+    hasSkipSupport &&
+    !habit.skipped &&
+    skipsRemaining !== null &&
+    skipsRemaining <= 0;
 
   const progress =
-    habit.type === "quantitative" && habit.target
-      ? (current / habit.target) * 100
-      : 0;
-  const isComplete =
-    habit.type === "quantitative" ? current >= (habit.target || 0) : completed;
-  const isDisabledBySkip = skippedToday && !isComplete;
-  const showSkippedLabel = skippedToday && !isComplete;
+    target > 0 ? Math.min((habit.quantity / target) * 100, 100) : 0;
+  const skipControlWidthClass = "h-7 w-7 sm:w-[76px]";
 
   return (
     <div
-      className={`w-full p-3 sm:p-4 rounded-lg border transition-all ${
-        isComplete ? "bg-primary/5 border-primary/20" : "bg-card border-border"
-      } ${skippedToday ? "opacity-90" : ""}`}
+      className={`w-full rounded-lg border p-3 transition-all sm:p-4 ${
+        isComplete && isBinary
+          ? "border-primary/25 bg-card"
+          : "border-border bg-card hover:shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
+      } ${isSkipped ? "opacity-90" : ""}`}
     >
       <div className="flex items-center justify-between gap-3">
-        {habit.type === "binary" && (
+        {isBinary && (
           <button
-            className={`h-6 w-6 shrink-0 rounded flex items-center justify-center transition-colors ${
+            type="button"
+            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded transition-colors ${
               isComplete
-                ? "bg-muted text-muted-foreground"
+                ? "bg-primary/70 text-primary-foreground"
                 : "border-2 border-input hover:border-primary"
             }`}
-            onClick={handleToggle}
-            disabled={isDisabledBySkip}
+            onClick={() => onToggleBinary?.(habit._id, !habit.completion)}
+            disabled={actionsDisabled || isSkipped}
             title={
-              isDisabledBySkip
-                ? "Skipped today"
-                : isComplete
-                  ? "Completed"
-                  : "Mark complete"
+              isSkipped ? "Skipped today" : isComplete ? "Completed" : "Mark complete"
             }
           >
             {isComplete && <Check className="h-3.5 w-3.5" />}
           </button>
         )}
 
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <h4
             className={[
-              "text-[14px] sm:text-[15px] transition-all truncate",
+              "truncate text-[14px] transition-all sm:text-[15px]",
               isComplete
-                ? habit.type === "binary"
-                  ? "line-through text-muted-foreground"
-                  : "text-muted-foreground"
-                : showSkippedLabel
+                ? "text-muted-foreground/60 line-through"
+                : isSkipped
                   ? "text-muted-foreground"
                   : "text-foreground",
             ].join(" ")}
           >
-            {habit.name}
+            {habitTemplate.name}
           </h4>
-          {showSkippedLabel && (
-            <p className="mt-1 text-[10px] sm:text-[11px] leading-none text-muted-foreground/60">
+          {isSkipped && (
+            <p className="mt-1 text-[10px] leading-none text-muted-foreground/60 sm:text-[11px]">
               Skipped today
             </p>
           )}
-          {showSkips && (
-            <p className="mt-1 text-[10px] sm:text-[11px] leading-none text-muted-foreground/60">
-              Skips left this week: {skipsLeftThisWeek}/{skipsPerWeek}
+          {habitTemplate.habitType === "quantitative" && (
+            <p className="mt-1 text-[10px] leading-none text-muted-foreground/60 sm:text-[11px]">
+              Daily target: {target}
+            </p>
+          )}
+          {hasSkipSupport && (
+            <p className="mt-1 text-[10px] leading-none text-muted-foreground/60 sm:text-[11px]">
+              {noSkipsRemaining
+                ? "No skips remaining this week"
+                : skipsRemaining !== null
+                  ? `Skips remaining this week: ${skipsRemaining}`
+                  : "Skips remaining this week: --"}
             </p>
           )}
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <div className="flex items-center gap-1 bg-streak/10 px-2 py-0.5 rounded-md">
-            <span className="text-xs sm:text-sm font-semibold text-streak">
-              {habit.streak}
+        <div className="flex shrink-0 items-center gap-2">
+          <div className="flex items-center gap-1 rounded-md bg-streak/10 px-2 py-0.5">
+            <span className="text-xs font-semibold text-streak sm:text-sm">
+              {habitTemplate.streak}
             </span>
             <Flame className="h-3.5 w-3.5 text-streak" />
           </div>
-          {showSkips && (
+
+          {hasSkipSupport ? (
             <button
               type="button"
-              onClick={handleSkip}
-              disabled={isComplete || (!skippedToday && skipsLeftThisWeek <= 0)}
-              className="h-7 px-2 rounded-md border border-border bg-card text-[11px] sm:text-xs text-muted-foreground/80 hover:text-foreground hover:bg-muted transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1"
-              title={skippedToday ? "Unskip" : "Skip today"}
+              onClick={() => onToggleSkip?.(habit._id, !habit.skipped)}
+              disabled={actionsDisabled || isComplete || noSkipsRemaining}
+              className={`flex ${skipControlWidthClass} items-center justify-center gap-1 rounded-md border border-border bg-card px-2 text-[11px] text-muted-foreground/80 transition-colors hover:bg-muted hover:text-foreground disabled:cursor-not-allowed disabled:opacity-40 sm:text-xs`}
+              title={
+                noSkipsRemaining
+                  ? "No skips remaining"
+                  : habit.skipped
+                    ? "Unskip"
+                    : "Skip today"
+              }
             >
               <SkipForward className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">
-                {skippedToday ? "Unskip" : "Skip"}
-              </span>
+              <span className="hidden sm:inline">{habit.skipped ? "Unskip" : "Skip"}</span>
             </button>
+          ) : (
+            <span
+              aria-hidden="true"
+              className={`${skipControlWidthClass} pointer-events-none rounded-md border border-transparent opacity-0`}
+            />
           )}
+
           <button
-            className="h-7 w-7 rounded-md flex items-center justify-center text-destructive/70 hover:text-destructive hover:bg-destructive/10 transition-all"
-            onClick={handleDelete}
+            type="button"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-destructive/70 transition-all hover:bg-destructive/10 hover:text-destructive"
+            onClick={() => onDelete?.(habitTemplate._id, habitTemplate.name)}
+            disabled={actionsDisabled}
+            title="Delete habit"
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>
         </div>
       </div>
 
-      {habit.type === "quantitative" && habit.target && (
-        <div className="mt-2 sm:mt-3 flex items-center gap-2">
+      {!isBinary && target > 0 && (
+        <div className="mt-2 flex items-center gap-2 sm:mt-3">
           <button
-            onClick={handleDecrement}
-            disabled={isDisabledBySkip || current === 0}
-            className="h-6 w-6 shrink-0 rounded border border-border bg-card flex items-center justify-center hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
+            type="button"
+            onClick={() => onUpdateQuantity?.(habit._id, -1)}
+            disabled={actionsDisabled || isSkipped || habit.quantity === 0}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border bg-card hover:bg-muted disabled:cursor-not-allowed disabled:opacity-30"
           >
             <Minus className="h-3 w-3" />
           </button>
 
-          <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
             <div
               className="h-full bg-primary transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
           </div>
 
-          <span className="text-xs font-medium text-foreground/80 shrink-0 text-center">
-            {current}/{habit.target}
+          <span
+            className={`shrink-0 text-center text-xs font-medium ${
+              isComplete ? "text-muted-foreground/60" : "text-foreground/80"
+            }`}
+          >
+            {habit.quantity}/{target}
           </span>
 
           <button
-            onClick={handleIncrement}
-            disabled={isDisabledBySkip || current >= habit.target}
-            className="h-6 w-6 shrink-0 rounded border border-border bg-card flex items-center justify-center hover:bg-muted disabled:opacity-30 disabled:cursor-not-allowed"
+            type="button"
+            onClick={() => onUpdateQuantity?.(habit._id, 1)}
+            disabled={actionsDisabled || isSkipped || habit.quantity >= target}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded border border-border bg-card hover:bg-muted disabled:cursor-not-allowed disabled:opacity-30"
           >
             <Plus className="h-3 w-3" />
           </button>

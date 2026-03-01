@@ -15,6 +15,7 @@ const toSafeUser = (user) => ({
   id: user._id,
   email: user.email,
   username: user.username,
+  bio: user.bio || "",
   role: user.role,
   isVerified: user.isVerified,
 });

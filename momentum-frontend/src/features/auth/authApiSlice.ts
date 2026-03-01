@@ -1,6 +1,7 @@
 import { apiSlice } from "@/api/apiSlice";
 import type { User } from "./authSlice";
 import { setCredentials, logOut } from "./authSlice";
+import type { RootState } from "@/store/store";
 
 export type LoginRequest = {
   email: string;
@@ -46,6 +47,15 @@ export type VerifyResetOtpRequest = {
 export type ResetPasswordRequest = {
   email: string;
   newPassword: string;
+};
+
+export type ProfileResponse = {
+  profile: User;
+};
+
+export type UpdateProfileRequest = {
+  username?: string;
+  bio?: string;
 };
 
 export const authApiSlice = apiSlice.injectEndpoints({
@@ -128,6 +138,32 @@ export const authApiSlice = apiSlice.injectEndpoints({
         body,
       }),
     }),
+    getProfile: builder.query<ProfileResponse, void>({
+      query: () => ({
+        url: "/profile",
+        method: "GET",
+      }),
+    }),
+    updateProfile: builder.mutation<
+      { message: string; profile: User },
+      UpdateProfileRequest
+    >({
+      query: (body) => ({
+        url: "/profile",
+        method: "PATCH",
+        body,
+      }),
+      async onQueryStarted(_arg, { dispatch, getState, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          const token = (getState() as RootState).auth.token;
+          if (!token) return;
+          dispatch(setCredentials({ user: data.profile, token }));
+        } catch {
+          // no-op
+        }
+      },
+    }),
     logout: builder.mutation<{ message: string }, void>({
       query: () => ({
         url: "/auth/logout",
@@ -154,4 +190,6 @@ export const {
   useForgetPasswordMutation,
   useVerifyResetOTPMutation,
   useResetPasswordMutation,
+  useGetProfileQuery,
+  useUpdateProfileMutation,
 } = authApiSlice;

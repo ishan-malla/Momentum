@@ -4,6 +4,7 @@ import type { RootState } from "@/store/store";
 export type User = {
   id: string;
   username: string;
+  bio?: string;
   email: string;
   role: "user" | "admin";
   isVerified: boolean;

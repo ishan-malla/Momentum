@@ -15,7 +15,7 @@ const GreetUser = () => {
 
   const user = useSelector(selectCurrentUser);
   return (
-    <div className="mx-auto mt-6 w-full xl:max-w-5xl px-4 sm:mt-8 sm:px-5 xl:px-0 lg:pr-[33.3333%]">
+    <div className="mx-auto mt-6 w-full xl:max-w-6xl px-4 sm:mt-8 sm:px-5 xl:px-0">
       <h1 className="text-xl font-serif font-medium tracking-tight sm:text-2xl lg:text-3xl">
         {`Good ${partOfDay(currentHour)}, ${user?.username}`}
       </h1>

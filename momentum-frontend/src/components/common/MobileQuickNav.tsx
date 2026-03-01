@@ -9,8 +9,8 @@ const navItems = [
 
 const MobileQuickNav = () => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border bg-card md:hidden">
-      <div className="mx-auto flex xl:max-w-5xl items-center justify-around px-4 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 border-t border-border/70 bg-card/95 backdrop-blur md:hidden">
+      <div className="mx-auto flex xl:max-w-6xl items-center justify-around px-4 pt-2 pb-[calc(env(safe-area-inset-bottom)+0.5rem)]">
         {navItems.map(({ to, label, icon: Icon, end }) => (
           <NavLink
             key={to}
@@ -18,17 +18,29 @@ const MobileQuickNav = () => {
             end={end}
             className={({ isActive }) =>
               [
-                "flex flex-col items-center justify-center gap-1 rounded-md px-3 py-2",
-                "text-muted-foreground transition-colors",
-                isActive ? "text-primary bg-primary/5" : "hover:text-foreground",
+                "group flex flex-col items-center justify-center gap-1 rounded-md border px-3 py-2 transition-colors",
+                isActive
+                  ? "border-border bg-secondary text-foreground"
+                  : "border-transparent text-muted-foreground hover:bg-secondary hover:text-foreground",
               ].join(" ")
             }
             aria-label={label}
           >
-            <Icon className="h-5 w-5" />
-            <span className="text-[11px] font-franklin leading-none">
-              {label}
-            </span>
+            {({ isActive }) => (
+              <>
+                <Icon
+                  className={[
+                    "h-5 w-5 transition-colors",
+                    isActive
+                      ? "text-foreground"
+                      : "text-muted-foreground group-hover:text-foreground",
+                  ].join(" ")}
+                />
+                <span className="text-[11px] font-franklin leading-none">
+                  {label}
+                </span>
+              </>
+            )}
           </NavLink>
         ))}
       </div>
@@ -37,4 +49,3 @@ const MobileQuickNav = () => {
 };
 
 export default MobileQuickNav;
-

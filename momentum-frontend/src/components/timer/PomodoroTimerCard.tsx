@@ -53,7 +53,7 @@ export default function PomodoroTimerCard({
               fill="none"
               stroke="currentColor"
               strokeWidth="3"
-              className="text-muted-foreground opacity-15"
+              className="text-muted-foreground/25"
             />
             <circle
               cx="50"
@@ -67,7 +67,7 @@ export default function PomodoroTimerCard({
               strokeLinecap="round"
               className={[
                 "transition-[stroke-dashoffset] duration-1000",
-                mode === "break" ? "text-success" : "text-primary",
+                mode === "break" ? "text-primary/70" : "text-primary",
               ].join(" ")}
             />
           </svg>
@@ -108,7 +108,7 @@ export default function PomodoroTimerCard({
             variant="outline"
             size="lg"
             onClick={onReset}
-            className="flex items-center gap-2 px-6 py-2.5 font-franklin"
+            className="flex items-center gap-2 bg-transparent px-6 py-2.5 font-franklin hover:bg-muted"
           >
             <RotateCcw className="h-4 w-4" />
             <span>Reset</span>
@@ -119,7 +119,7 @@ export default function PomodoroTimerCard({
             size="icon"
             variant="outline"
             onClick={onToggleSound}
-            className="h-11 w-11"
+            className="h-11 w-11 bg-transparent hover:bg-muted"
             aria-label={soundEnabled ? "Disable sound" : "Enable sound"}
           >
             {soundEnabled ? (
@@ -134,19 +134,25 @@ export default function PomodoroTimerCard({
           <Button
             type="button"
             onClick={onSwitchToFocus}
-            variant={mode === "work" ? "default" : "outline"}
-            className="px-4 py-2 font-franklin text-sm"
+            variant="outline"
+            className={`px-4 py-2 font-franklin text-sm ${
+              mode === "work"
+                ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/10"
+                : "bg-transparent hover:bg-muted"
+            }`}
           >
             Focus ({workDurationMin}min)
           </Button>
+
           <Button
             type="button"
             onClick={onSwitchToBreak}
-            variant={mode === "break" ? "default" : "outline"}
-            className={[
-              "px-4 py-2 font-franklin text-sm",
-              mode === "break" ? "bg-success text-white hover:bg-success/90" : "",
-            ].join(" ")}
+            variant="outline"
+            className={`px-4 py-2 font-franklin text-sm ${
+              mode === "break"
+                ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/10"
+                : "bg-transparent hover:bg-muted"
+            }`}
           >
             Break ({breakDurationMin}min)
           </Button>
@@ -155,4 +161,3 @@ export default function PomodoroTimerCard({
     </Card>
   );
 }
-

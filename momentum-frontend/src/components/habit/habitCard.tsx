@@ -47,8 +47,8 @@ export const HabitCard = ({
     <div
       className={`w-full rounded-lg border p-3 transition-all sm:p-4 ${
         isComplete && isBinary
-          ? "border-border bg-muted/70"
-          : "border-border/80 bg-muted/35 hover:bg-muted/45"
+          ? "border-primary/25 bg-card"
+          : "border-border bg-card hover:shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
       } ${isSkipped ? "opacity-90" : ""}`}
     >
       <div className="flex items-center justify-between gap-3">

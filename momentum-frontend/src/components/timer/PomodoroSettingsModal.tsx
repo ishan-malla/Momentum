@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
 
 export type PomodoroDraftSettings = {
-  workDurationMin: number;
-  breakDurationMin: number;
-  longBreakDurationMin: number;
-  sessionsUntilLongBreak: number;
+  workDurationMin: string;
+  breakDurationMin: string;
+  longBreakDurationMin: string;
+  sessionsUntilLongBreak: string;
 };
 
 type Props = {
@@ -17,6 +17,15 @@ type Props = {
   onChange: (next: PomodoroDraftSettings) => void;
   onClose: () => void;
   onApply: () => void;
+};
+
+const inputClass =
+  "h-10 w-full rounded-md border border-input bg-background px-3 font-stat text-foreground outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20";
+
+const normalizeNumericDraftValue = (raw: string) => {
+  const digitsOnly = raw.replace(/\D/g, "");
+  if (digitsOnly.length === 0) return "";
+  return String(Number.parseInt(digitsOnly, 10));
 };
 
 export default function PomodoroSettingsModal({
@@ -34,7 +43,7 @@ export default function PomodoroSettingsModal({
       onClick={onClose}
     >
       <Card
-        className="w-full max-w-md overflow-hidden p-0 shadow-lg animate-slide-in-right"
+        className="w-full max-w-md overflow-hidden border-border bg-card p-0 shadow-lg animate-slide-in-right"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -67,17 +76,17 @@ export default function PomodoroSettingsModal({
               Focus Duration (minutes)
             </label>
             <input
-              type="number"
-              min={1}
-              max={60}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={draft.workDurationMin}
               onChange={(e) =>
                 onChange({
                   ...draft,
-                  workDurationMin: Number(e.target.value),
+                  workDurationMin: normalizeNumericDraftValue(e.target.value),
                 })
               }
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-foreground font-stat outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20"
+              className={inputClass}
             />
           </div>
 
@@ -86,17 +95,17 @@ export default function PomodoroSettingsModal({
               Break Duration (minutes)
             </label>
             <input
-              type="number"
-              min={1}
-              max={30}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={draft.breakDurationMin}
               onChange={(e) =>
                 onChange({
                   ...draft,
-                  breakDurationMin: Number(e.target.value),
+                  breakDurationMin: normalizeNumericDraftValue(e.target.value),
                 })
               }
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-foreground font-stat outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20"
+              className={inputClass}
             />
           </div>
 
@@ -105,17 +114,17 @@ export default function PomodoroSettingsModal({
               Long Break Duration (minutes)
             </label>
             <input
-              type="number"
-              min={1}
-              max={60}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={draft.longBreakDurationMin}
               onChange={(e) =>
                 onChange({
                   ...draft,
-                  longBreakDurationMin: Number(e.target.value),
+                  longBreakDurationMin: normalizeNumericDraftValue(e.target.value),
                 })
               }
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-foreground font-stat outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20"
+              className={inputClass}
             />
           </div>
 
@@ -124,26 +133,33 @@ export default function PomodoroSettingsModal({
               Sessions Until Long Break
             </label>
             <input
-              type="number"
-              min={1}
-              max={12}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={draft.sessionsUntilLongBreak}
               onChange={(e) =>
                 onChange({
                   ...draft,
-                  sessionsUntilLongBreak: Number(e.target.value),
+                  sessionsUntilLongBreak: normalizeNumericDraftValue(e.target.value),
                 })
               }
-              className="h-10 w-full rounded-md border border-input bg-background px-3 text-foreground font-stat outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20"
+              className={inputClass}
             />
           </div>
         </div>
 
         <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onClose}
+          >
             Cancel
           </Button>
-          <Button type="button" onClick={onApply}>
+          <Button
+            type="button"
+            onClick={onApply}
+          >
             Apply Settings
           </Button>
         </div>

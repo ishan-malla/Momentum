@@ -79,8 +79,6 @@ const habitCompletionSchema = new mongoose.Schema(
       required: true,
     },
 
-    //this is the updated quantity when update request is done from the user this is for binary habits
-
     completion: {
       type: Boolean,
       default: false,

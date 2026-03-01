@@ -5,6 +5,7 @@ import cookieParser from "cookie-parser";
 import connectDB from "./src/config/db.js";
 import authRoutes from "./src/routes/authRoutes.js";
 import habitRoutes from "./src/routes/habitRoutes.js";
+import profileRoutes from "./src/routes/profileRoutes.js";
 
 dotenv.config();
 
@@ -26,6 +27,7 @@ connectDB();
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api", habitRoutes);
+app.use("/api/profile", profileRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "API is running" });

@@ -1,21 +1,36 @@
-import { Button } from "@/components/ui/button";
-import { selectCurrentUser } from "@/features/auth/authSlice";
 import {
   useGetProfileQuery,
   useLogoutMutation,
   useUpdateProfileMutation,
 } from "@/features/auth/authApiSlice";
-import { LogOut, Pencil } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { selectCurrentUser } from "@/features/auth/authSlice";
+import {
+  useRemoveAvatarMutation,
+  useUploadAvatarMutation,
+} from "@/features/profile/profileApiSlice";
+import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
+import AccountSection from "@/pages/settings/components/AccountSection";
+import ProfileSection from "@/pages/settings/components/ProfileSection";
+import SettingsHeader from "@/pages/settings/components/SettingsHeader";
+import {
+  BIO_MAX_LENGTH,
+  MAX_AVATAR_SIZE_BYTES,
+  USERNAME_MAX_LENGTH,
+  USERNAME_MIN_LENGTH,
+  getApiErrorMessage,
+  toImageDataUrl,
+} from "@/pages/settings/settingsFormUtils";
 
 const Settings = () => {
   const navigate = useNavigate();
   const user = useSelector(selectCurrentUser);
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
   const [updateProfile, { isLoading: isSavingProfile }] = useUpdateProfileMutation();
+  const [uploadAvatar, { isLoading: isUploadingAvatar }] = useUploadAvatarMutation();
+  const [removeAvatar, { isLoading: isRemovingAvatar }] = useRemoveAvatarMutation();
   const {
     data: profileData,
     isLoading: isProfileLoading,
@@ -23,54 +38,104 @@ const Settings = () => {
     isError: isProfileError,
     refetch,
   } = useGetProfileQuery(undefined, { skip: !user });
-
+  // Prefer auth store user so profile edits reflect instantly after save.
+  const profile = user ?? profileData?.profile;
   const [isEditing, setIsEditing] = useState(false);
-  const [username, setUsername] = useState("");
-  const [bio, setBio] = useState("");
-
-  const profile = profileData?.profile ?? user;
-
-  useEffect(() => {
-    if (!profile) return;
-    setUsername(profile.username ?? "");
-    setBio(profile.bio ?? "");
-  }, [profile?.username, profile?.bio]);
-
+  const [draftUsername, setDraftUsername] = useState("");
+  const [draftBio, setDraftBio] = useState("");
+  const [isReadingAvatarFile, setIsReadingAvatarFile] = useState(false);
+  const isAvatarBusy = isReadingAvatarFile || isUploadingAvatar || isRemovingAvatar;
+  const displayedUsername = isEditing ? draftUsername : profile?.username ?? "";
+  const displayedBio = isEditing ? draftBio : profile?.bio ?? "";
+  const displayedAvatarUrl = profile?.avatarUrl ?? "";
   const avatarLetter = useMemo(() => {
-    const c = (username || profile?.username || "").trim().charAt(0);
-    return c ? c.toUpperCase() : "?";
-  }, [profile?.username, username]);
-
-  const onSave = async () => {
-    const nextUsername = username.trim();
-    const nextBio = bio.trim();
-
-    if (nextUsername.length < 3 || nextUsername.length > 10) {
-      toast.error("Invalid username", {
-        description: "Username must be between 3 and 10 characters.",
+    const firstCharacter = displayedUsername.trim().charAt(0);
+    return firstCharacter ? firstCharacter.toUpperCase() : "?";
+  }, [displayedUsername]);
+  const toggleEditing = () => {
+    if (profile) {
+      setDraftUsername(profile.username ?? "");
+      setDraftBio(profile.bio ?? "");
+    }
+    setIsEditing((previous) => !previous);
+  };
+  const onAvatarFileSelect = async (file: File | null) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("Avatar upload failed", {
+        description: "Please choose an image file.",
       });
       return;
     }
-
-    if (nextBio.length > 200) {
-      toast.error("Invalid bio", {
-        description: "Bio must be 200 characters or fewer.",
+    if (file.size > MAX_AVATAR_SIZE_BYTES) {
+      toast.error("Avatar upload failed", {
+        description: "Image must be 5MB or smaller.",
       });
       return;
     }
-
+    setIsReadingAvatarFile(true);
     try {
-      await updateProfile({ username: nextUsername, bio: nextBio }).unwrap();
+      const imageDataUrl = await toImageDataUrl(file);
+      const response = await uploadAvatar({ imageDataUrl }).unwrap();
+      toast.success("Avatar uploaded");
+      void refetch();
+      if (isEditing) {
+        setDraftUsername(response.profile.username ?? "");
+        setDraftBio(response.profile.bio ?? "");
+      }
+    } catch (error) {
+      const message = getApiErrorMessage(error, "Could not upload avatar image.");
+      toast.error("Avatar upload failed", { description: message });
+    } finally {
+      setIsReadingAvatarFile(false);
+    }
+  };
+  const onRemoveAvatar = async () => {
+    try {
+      await removeAvatar().unwrap();
+      toast.success("Avatar removed");
+      void refetch();
+    } catch (error) {
+      const message = getApiErrorMessage(error, "Could not remove avatar image.");
+      toast.error("Avatar remove failed", { description: message });
+    }
+  };
+  const onSave = async () => {
+    const nextUsername = draftUsername.trim();
+    const nextBio = draftBio.trim();
+    if (
+      nextUsername.length < USERNAME_MIN_LENGTH ||
+      nextUsername.length > USERNAME_MAX_LENGTH
+    ) {
+      toast.error("Invalid username", {
+        description: `Username must be between ${USERNAME_MIN_LENGTH} and ${USERNAME_MAX_LENGTH} characters.`,
+      });
+      return;
+    }
+    if (nextBio.length > BIO_MAX_LENGTH) {
+      toast.error("Invalid bio", {
+        description: `Bio must be ${BIO_MAX_LENGTH} characters or fewer.`,
+      });
+      return;
+    }
+    try {
+      const response = await updateProfile({
+        username: nextUsername,
+        bio: nextBio,
+      }).unwrap();
+      setDraftUsername(response.profile.username ?? "");
+      setDraftBio(response.profile.bio ?? "");
       setIsEditing(false);
+      void refetch();
       toast.success("Profile updated");
     } catch (error) {
-      const message =
-        (error as { data?: { message?: string } })?.data?.message ||
-        "Could not update profile. Please try again.";
+      const message = getApiErrorMessage(
+        error,
+        "Could not update profile. Please try again.",
+      );
       toast.error("Update failed", { description: message });
     }
   };
-
   const onLogout = async () => {
     try {
       await logout().unwrap();
@@ -80,7 +145,6 @@ const Settings = () => {
       toast.error("Logout failed", { description: "Please try again." });
     }
   };
-
   if (!profile && isProfileLoading) {
     return (
       <div className="mx-auto mt-6 max-w-3xl px-4 md:px-0">
@@ -88,150 +152,31 @@ const Settings = () => {
       </div>
     );
   }
-
   return (
-    <div className="mx-auto mt-6 w-full xl:max-w-6xl px-4 sm:px-5 xl:px-0">
-      <div className="space-y-6 sm:space-y-8 animate-fade-in">
-        <div>
-          <h2 className="text-[20px] sm:text-[24px] lg:text-[28px] font-serif font-semibold text-foreground">
-            Settings & Profile
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Update your profile and manage your account.
-          </p>
-          {isProfileFetching && (
-            <p className="mt-2 text-xs text-muted-foreground">Refreshing profile...</p>
-          )}
-          {isProfileError && (
-            <div className="mt-2 flex items-center gap-2">
-              <p className="text-xs text-destructive">Could not load latest profile data.</p>
-              <Button type="button" size="sm" variant="outline" onClick={() => refetch()}>
-                Retry
-              </Button>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-card border border-border rounded-lg p-6">
-          <div className="flex items-center justify-between gap-4">
-            <h3 className="text-[16px] font-serif font-medium text-foreground">
-              Profile Information
-            </h3>
-            <Button
-              type="button"
-              variant="outline"
-              className="bg-transparent"
-              onClick={() => {
-                setIsEditing((prev) => {
-                  if (prev && profile) {
-                    setUsername(profile.username ?? "");
-                    setBio(profile.bio ?? "");
-                  }
-                  return !prev;
-                });
-              }}
-            >
-              <Pencil className="h-4 w-4 mr-2" />
-              {isEditing ? "Cancel" : "Edit"}
-            <div className="flex items-center justify-between gap-4">
-              <h3 className="text-[15px] font-serif font-medium text-foreground sm:text-[16px]">
-                Profile Information
-              </h3>
-              <Button
-                variant="outline"
-                className="bg-transparent"
-                onClick={() => setIsEditing((v) => !v)}
-              >
-                <Pencil className="h-4 w-4 mr-2" />
-                {isEditing ? "Stop editing" : "Edit"}
-            </Button>
-          </div>
-
-          <div className="flex items-center gap-5 mt-5">
-            <div className="h-20 w-20 rounded-full bg-primary/20 text-primary flex items-center justify-center font-franklin font-bold text-[28px]">
-              {avatarLetter}
-              <div className="h-20 w-20 rounded-full bg-primary/20 text-primary flex items-center justify-center font-franklin font-bold text-[24px] sm:text-[28px]">
-                {avatarLetter}
-              </div>
-              <div className="flex-1">
-                <label className="text-[13px] font-franklin font-medium text-muted-foreground block mb-2">
-                  Username
-                </label>
-                <input
-                  type="text"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  disabled={!isEditing}
-                  className="w-full px-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-[14px] disabled:opacity-70"
-                  placeholder="Your username"
-                />
-              </div>
-            </div>
-            <div className="flex-1">
-              <label className="text-[13px] font-franklin font-medium text-muted-foreground block mb-2">
-                Username
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                disabled={!isEditing || isSavingProfile}
-                className="w-full px-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-[14px] disabled:opacity-70"
-                placeholder="Your username"
-              />
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <label className="text-[13px] font-franklin font-medium text-muted-foreground block mb-2">
-              Email Address
-            </label>
-            <input
-              type="email"
-              value={profile?.email ?? ""}
-              disabled
-              className="w-full px-4 py-2 bg-card border border-border rounded-lg font-sans text-[14px] disabled:opacity-70"
-            />
-          </div>
-
-          <div className="mt-5">
-            <label className="text-[13px] font-franklin font-medium text-muted-foreground block mb-2">
-              Bio
-            </label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              disabled={!isEditing || isSavingProfile}
-              className="w-full px-4 py-2 bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-sans text-[14px] resize-none disabled:opacity-70"
-              rows={3}
-              placeholder="Tell us about yourself"
-            />
-          </div>
-
-          <Button
-            type="button"
-            className="mt-5 bg-primary hover:bg-primary/90 text-primary-foreground"
-            onClick={onSave}
-            disabled={!isEditing || isSavingProfile}
-          >
-            {isSavingProfile ? "Saving..." : "Save Profile Changes"}
-          </Button>
-        </div>
-
-        <div className="bg-card border border-border rounded-lg p-6">
-          <h3 className="text-[15px] font-serif font-medium text-foreground mb-4 sm:text-[16px]">
-            Account
-          </h3>
-          <Button
-            variant="destructive"
-            className="w-full justify-center"
-            onClick={onLogout}
-            disabled={isLoggingOut}
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            {isLoggingOut ? "Logging out..." : "Logout"}
-          </Button>
-        </div>
+    <div className="mx-auto mt-6 w-full px-4 sm:px-5 xl:max-w-6xl xl:px-0">
+      <div className="animate-fade-in space-y-6 sm:space-y-8">
+        <SettingsHeader
+          isRefreshingProfile={isProfileFetching}
+          hasLoadError={isProfileError}
+          onRetry={refetch}
+        />
+        <ProfileSection
+          profile={profile ?? null}
+          isEditing={isEditing}
+          isSaving={isSavingProfile}
+          isUploadingAvatar={isAvatarBusy}
+          username={displayedUsername}
+          bio={displayedBio}
+          avatarUrl={displayedAvatarUrl}
+          avatarLetter={avatarLetter}
+          onToggleEdit={toggleEditing}
+          onUsernameChange={setDraftUsername}
+          onBioChange={setDraftBio}
+          onAvatarFileSelect={onAvatarFileSelect}
+          onRemoveAvatar={onRemoveAvatar}
+          onSave={onSave}
+        />
+        <AccountSection isLoggingOut={isLoggingOut} onLogout={onLogout} />
       </div>
     </div>
   );

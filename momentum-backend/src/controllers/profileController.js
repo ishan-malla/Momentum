@@ -1,13 +1,5 @@
 import User from "../models/userSchema.js";
-
-const toProfile = (user) => ({
-  id: user._id,
-  email: user.email,
-  username: user.username,
-  bio: user.bio || "",
-  role: user.role,
-  isVerified: user.isVerified,
-});
+import { toProfile } from "../utils/profileMapper.js";
 
 export const getProfile = async (req, res) => {
   try {

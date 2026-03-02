@@ -5,84 +5,50 @@ import PomodoroSettingsModal, {
   type PomodoroDraftSettings,
 } from "@/components/timer/PomodoroSettingsModal";
 import PomodoroStats from "@/components/timer/PomodoroStats";
+import PomodoroTaskQueue from "@/components/timer/PomodoroTaskQueue";
 import PomodoroTimerCard from "@/components/timer/PomodoroTimerCard";
 import TodaysSessions from "@/components/timer/TodaysSessions";
+import { setAlarmMuted } from "@/components/timer/alarmSound";
 import {
-  type PomodoroSettings,
+  MIN_XP_ELIGIBLE_FOCUS_MINUTES,
+  createRuntimeSettingsFromApi,
+  fromApiSettings,
+  parseDraftSettings,
+  toDraftSettings,
+} from "@/components/timer/pomodoroSettingsMapper";
+import {
+  notifyPomodoroCompletion,
+  requestPomodoroNotificationPermission,
+} from "@/components/timer/pomodoroNotifications";
+import { usePomodoroEngine } from "@/components/timer/usePomodoroEngine";
+import type { PomodoroRuntimeSettings } from "@/components/timer/pomodoroEngineTypes";
+import {
   type PomodoroDashboard,
   useCreatePomodoroSessionMutation,
   useUpdatePomodoroSettingsMutation,
 } from "@/features/pomodoro/pomodoroApiSlice";
-import { coerceMinutes } from "@/components/timer/utils";
-import {
-  type PomodoroRuntimeSettings,
-  usePomodoroEngine,
-} from "@/components/timer/usePomodoroEngine";
-import { setAlarmMuted } from "@/components/timer/alarmSound";
 
 type Props = {
   dashboard: PomodoroDashboard;
 };
 
-const toDraft = (settings: PomodoroRuntimeSettings): PomodoroDraftSettings => ({
-  workDurationMin: String(settings.focusDurationMin),
-  breakDurationMin: String(settings.breakDurationMin),
-  longBreakDurationMin: String(settings.longBreakDurationMin),
-  sessionsUntilLongBreak: String(settings.sessionsUntilLongBreak),
-});
-
-const fromApiSettings = (settings: PomodoroSettings): PomodoroRuntimeSettings => ({
-  focusDurationMin: settings.focusDurationMin,
-  breakDurationMin: settings.breakDurationMin,
-  longBreakDurationMin: settings.longBreakDurationMin,
-  sessionsUntilLongBreak: settings.sessionsUntilLongBreak,
-});
-const MIN_XP_ELIGIBLE_FOCUS_MINUTES = 5;
+const TIMER_RING_RADIUS = 45;
 
 export default function PomodoroTimerContent({ dashboard }: Props) {
-  const initialSettings: PomodoroRuntimeSettings = useMemo(
-    () => ({
-      focusDurationMin: dashboard.settings.focusDurationMin,
-      breakDurationMin: dashboard.settings.breakDurationMin,
-      longBreakDurationMin: dashboard.settings.longBreakDurationMin,
-      sessionsUntilLongBreak: dashboard.settings.sessionsUntilLongBreak,
-    }),
-    [dashboard.settings],
-  );
+  const initialSettings = useMemo(() => {
+    return createRuntimeSettingsFromApi(dashboard.settings);
+  }, [dashboard.settings]);
 
   const [settings, setSettings] = useState<PomodoroRuntimeSettings>(initialSettings);
   const [soundEnabled, setSoundEnabled] = useState(dashboard.settings.soundEnabled);
   const [showSettings, setShowSettings] = useState(false);
   const [draftSettings, setDraftSettings] = useState<PomodoroDraftSettings>(
-    toDraft(initialSettings),
+    toDraftSettings(initialSettings),
   );
 
   const [createPomodoroSession] = useCreatePomodoroSessionMutation();
   const [updatePomodoroSettings, { isLoading: isSavingSettings }] =
     useUpdatePomodoroSettingsMutation();
-
-  const notifyCompletion = (mode: "work" | "break") => {
-    if (typeof window === "undefined" || !("Notification" in window)) return;
-
-    const title =
-      mode === "work" ? "Focus session complete" : "Break session complete";
-    const body =
-      mode === "work"
-        ? "Time to start your break."
-        : "Time to start your next focus session.";
-    const show = () => new Notification(title, { body, tag: "pomodoro-complete" });
-
-    if (Notification.permission === "granted") {
-      show();
-      return;
-    }
-
-    if (Notification.permission === "default") {
-      void Notification.requestPermission().then((permission) => {
-        if (permission === "granted") show();
-      });
-    }
-  };
 
   const engine = usePomodoroEngine({
     initialSettings: settings,
@@ -103,49 +69,20 @@ export default function PomodoroTimerContent({ dashboard }: Props) {
       toast.error(`Could not save ${mode === "work" ? "focus" : "break"} session`);
     },
     onSessionCompleted: (mode) => {
-      const doneLabel = mode === "work" ? "Focus" : "Break";
-      const description =
-        mode === "work"
-          ? "Break started automatically."
-          : "Focus started automatically.";
-      toast.success(`${doneLabel} session complete`, {
-        description,
+      toast.success(`${mode === "work" ? "Focus" : "Break"} session complete`, {
+        description:
+          mode === "work" ? "Break is ready to start." : "Focus is ready to start.",
       });
-      notifyCompletion(mode);
+      notifyPomodoroCompletion(mode);
     },
   });
-
-  const ringRadius = 45;
-  const ringCircumference = 2 * Math.PI * ringRadius;
-  const ringOffset = ringCircumference * (1 - engine.progress);
 
   useEffect(() => {
     setAlarmMuted(!soundEnabled);
   }, [soundEnabled]);
 
   const applySettings = async () => {
-    const nextSettings: PomodoroRuntimeSettings = {
-      focusDurationMin: coerceMinutes(
-        Number.parseInt(draftSettings.workDurationMin, 10),
-        1,
-        60,
-      ),
-      breakDurationMin: coerceMinutes(
-        Number.parseInt(draftSettings.breakDurationMin, 10),
-        1,
-        30,
-      ),
-      longBreakDurationMin: coerceMinutes(
-        Number.parseInt(draftSettings.longBreakDurationMin, 10),
-        1,
-        60,
-      ),
-      sessionsUntilLongBreak: coerceMinutes(
-        Number.parseInt(draftSettings.sessionsUntilLongBreak, 10),
-        1,
-        12,
-      ),
-    };
+    const nextSettings = parseDraftSettings(draftSettings);
 
     try {
       const response = await updatePomodoroSettings({
@@ -156,7 +93,7 @@ export default function PomodoroTimerContent({ dashboard }: Props) {
       const persistedSettings = fromApiSettings(response.settings);
       setSettings(persistedSettings);
       setSoundEnabled(response.settings.soundEnabled);
-      setDraftSettings(toDraft(persistedSettings));
+      setDraftSettings(toDraftSettings(persistedSettings));
       engine.syncCurrentModeWithSettings(persistedSettings);
       setShowSettings(false);
     } catch {
@@ -164,56 +101,64 @@ export default function PomodoroTimerContent({ dashboard }: Props) {
     }
   };
 
+  const ringCircumference = 2 * Math.PI * TIMER_RING_RADIUS;
+  const ringOffset = ringCircumference * engine.progress;
+
   return (
     <div>
       <PomodoroSettingsModal
         open={showSettings}
         draft={draftSettings}
-        onChange={(next) => setDraftSettings(next)}
+        onChange={setDraftSettings}
         onClose={() => setShowSettings(false)}
         onApply={applySettings}
       />
 
-      <PomodoroHeader
-        onToggleSettings={() => {
-          setShowSettings((prev) => {
-            const next = !prev;
-            if (next) setDraftSettings(toDraft(settings));
-            return next;
-          });
-        }}
-        showSettings={showSettings}
-      />
+      <PomodoroHeader />
 
-      <main className="mx-auto w-full xl:max-w-6xl space-y-8 px-4 py-8 sm:px-5 xl:px-0">
-        <PomodoroTimerCard
-          mode={engine.mode}
-          isRunning={engine.isRunning}
-          displayMinutes={engine.displayMinutes}
-          displaySeconds={engine.displaySeconds}
-          ringRadius={ringRadius}
-          ringCircumference={ringCircumference}
-          ringOffset={ringOffset}
-          soundEnabled={soundEnabled}
-          workDurationMin={settings.focusDurationMin}
-          breakDurationMin={
-            engine.mode === "break" ? engine.sessionDurationMin : settings.breakDurationMin
-          }
-          onStartPause={() => {
-            if (
-              typeof window !== "undefined" &&
-              "Notification" in window &&
-              Notification.permission === "default"
-            ) {
-              void Notification.requestPermission();
-            }
-            engine.onStartPause();
-          }}
-          onReset={engine.onReset}
-          onToggleSound={() => setSoundEnabled((prev) => !prev)}
-          onSwitchToFocus={engine.switchToFocus}
-          onSwitchToBreak={engine.switchToBreak}
-        />
+      <main className="mx-auto w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-5 sm:py-8 xl:max-w-6xl xl:px-0">
+        <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
+          <div className="animate-drop-in">
+            <PomodoroTimerCard
+              mode={engine.mode}
+              isRunning={engine.isRunning}
+              displayMinutes={engine.displayMinutes}
+              displaySeconds={engine.displaySeconds}
+              ringRadius={TIMER_RING_RADIUS}
+              ringCircumference={ringCircumference}
+              ringOffset={ringOffset}
+              soundEnabled={soundEnabled}
+              workDurationMin={settings.focusDurationMin}
+              breakDurationMin={
+                engine.mode === "break"
+                  ? engine.sessionDurationMin
+                  : settings.breakDurationMin
+              }
+              showSettings={showSettings}
+              onStartPause={() => {
+                requestPomodoroNotificationPermission();
+                engine.onStartPause();
+              }}
+              onReset={engine.onReset}
+              onToggleSound={() => setSoundEnabled((previous) => !previous)}
+              onToggleSettings={() => {
+                setShowSettings((previous) => {
+                  const isOpening = !previous;
+                  if (isOpening) {
+                    setDraftSettings(toDraftSettings(settings));
+                  }
+                  return isOpening;
+                });
+              }}
+              onSwitchToFocus={engine.switchToFocus}
+              onSwitchToBreak={engine.switchToBreak}
+            />
+          </div>
+
+          <div className="animate-fade-in">
+            <PomodoroTaskQueue />
+          </div>
+        </div>
 
         <PomodoroStats
           sessionsCompleted={dashboard.stats.sessionsCompleted}

@@ -1,28 +1,24 @@
 import { selectCurrentUser } from "@/features/auth/authSlice";
+import { formatDisplayName, getDayGreeting } from "@/utils/greeting";
 import { useSelector } from "react-redux";
 
 const GreetUser = () => {
-  const currentDate = new Date();
-  const currentHour = currentDate.getHours();
-
-  const partOfDay = (currentHour: number) => {
-    if (!currentHour) return;
-    if (currentHour < 4) return "night";
-    if (currentHour < 13) return "morning";
-    if (currentHour < 17) return "afternoon";
-    if (currentHour < 20) return "evening";
-  };
-
   const user = useSelector(selectCurrentUser);
+  const greeting = getDayGreeting();
+  const username = formatDisplayName(user?.username);
+
   return (
-    <div className="mx-auto mt-6 w-full xl:max-w-6xl px-4 sm:mt-8 sm:px-5 xl:px-0">
-      <h1 className="text-xl font-serif font-medium tracking-tight sm:text-2xl lg:text-3xl">
-        {`Good ${partOfDay(currentHour)}, ${user?.username}`}
-      </h1>
-      <p className="text-muted-foreground text-sm">
-        Keep building momentum. Small steps lead to big changes
+    <section className="mx-auto mt-6 w-full px-4 sm:mt-7 sm:px-5 xl:max-w-6xl xl:px-0">
+      <p className="text-[11px] font-secondary uppercase tracking-[0.14em] text-muted-foreground/85">
+        Overview
       </p>
-    </div>
+      <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+        {`${greeting}, ${username}`}
+      </h1>
+      <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
+        Keep building momentum. Small steps lead to big changes.
+      </p>
+    </section>
   );
 };
 export default GreetUser;

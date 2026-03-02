@@ -1,10 +1,15 @@
 import express from "express";
 import { protect } from "../middleware/authMiddleware.js";
 import { getProfile, updateProfile } from "../controllers/profileController.js";
+import { removeAvatar, uploadAvatar } from "../controllers/avatarController.js";
 
 const router = express.Router();
 
-router.get("/", protect, getProfile);
-router.patch("/", protect, updateProfile);
+router.use(protect);
+
+router.get("/", getProfile);
+router.patch("/", updateProfile);
+router.post("/avatar", uploadAvatar);
+router.delete("/avatar", removeAvatar);
 
 export default router;

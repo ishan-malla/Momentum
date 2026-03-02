@@ -1,16 +1,23 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useSelector } from "react-redux";
 import HabitHeatMap from "@/components/calendar/HabitHeatMap";
 import CreateHabitModal from "@/components/habit/CreateHabitModal";
 import DeleteHabitConfirmModal from "@/components/habit/DeleteHabitConfirmModal";
+import HabitDashboardHeader from "@/components/habit/HabitDashboardHeader";
 import HabitListSection from "@/components/habit/HabitListSection";
-import { Button } from "@/components/ui/button";
+import HabitSummaryCards from "@/components/habit/HabitSummaryCards";
+import HabitSummarySkeleton from "@/components/habit/HabitSummarySkeleton";
 import { Card, CardContent } from "@/components/ui/card";
+import { selectCurrentUser } from "@/features/auth/authSlice";
+import { getHabitDashboardMetrics } from "@/features/habit/habitMetrics";
 import { useGetHabitHeatMapQuery } from "@/features/habit/habitApiSlice";
 import { useHabitCreate } from "@/features/habit/useHabitCreate";
 import { useHabitInteractions } from "@/features/habit/useHabitInteractions";
-import { Plus } from "lucide-react";
+import { formatDisplayName, getDayGreeting } from "@/utils/greeting";
 
 const Habits = () => {
+  const user = useSelector(selectCurrentUser);
+
   const {
     habits,
     habitsError,
@@ -38,18 +45,22 @@ const Habits = () => {
     handleCreateHabit,
   } = useHabitCreate();
 
-  const [selectedYear, setSelectedYear] = useState<number>(() =>
-    new Date().getFullYear(),
-  );
-  const [selectedMonth, setSelectedMonth] = useState<number>(() =>
-    new Date().getMonth(),
-  );
+  const [selectedYear, setSelectedYear] = useState<number>(() => {
+    return new Date().getFullYear();
+  });
+  const [selectedMonth, setSelectedMonth] = useState<number>(() => {
+    return new Date().getMonth();
+  });
 
   const { currentData: heatMapData, isLoading: isHeatMapLoading } =
     useGetHabitHeatMapQuery({
       year: selectedYear,
       month: selectedMonth,
     });
+
+  const metrics = useMemo(() => getHabitDashboardMetrics(habits), [habits]);
+  const greeting = getDayGreeting();
+  const username = formatDisplayName(user?.username);
 
   const handleMonthChange = (year: number, month: number) => {
     setSelectedYear(year);
@@ -63,40 +74,50 @@ const Habits = () => {
   };
 
   return (
-    <div className="mx-auto mt-6 w-full xl:max-w-6xl space-y-4 px-4 sm:px-5 xl:px-0">
-      <div className="flex items-start justify-between gap-3">
-        <h2 className="text-[20px] font-serif font-semibold text-foreground sm:text-[24px] lg:text-[28px]">
-          Today&apos;s Habits
-        </h2>
-        <Button
-          type="button"
-          size="sm"
-          onClick={openCreateModal}
-          className="mt-1 shrink-0 bg-primary text-primary-foreground hover:bg-primary/90"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          Add Habit
-        </Button>
-      </div>
-
-      <HabitListSection
-        habits={habits}
-        habitsError={habitsError}
-        isLoading={isHabitsLoading}
-        hasQueryError={hasQueryError}
-        onRetry={refetchHabits}
-        emptyMessage="No habits for today yet. Create one to get started."
-        actionsDisabled={actionsDisabled}
-        onToggleBinary={handleToggleBinary}
-        onUpdateQuantity={handleUpdateQuantity}
-        onToggleSkip={handleToggleSkip}
-        onDelete={requestDeleteHabit}
+    <div className="mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-6xl xl:px-0">
+      <HabitDashboardHeader
+        greeting={greeting}
+        username={username}
+        totalHabits={metrics.totalHabits}
+        bestStreak={metrics.maxStreak}
+        onAddHabit={openCreateModal}
       />
 
-      <Card className="py-5">
-        <CardContent className="px-5 sm:px-6">
+      {isHabitsLoading ? (
+        <HabitSummarySkeleton />
+      ) : (
+        <HabitSummaryCards metrics={metrics} />
+      )}
+
+      <section className="space-y-4">
+        <div className="flex items-end justify-between gap-3">
+          <h2 className="font-heading text-[24px] font-semibold text-foreground">
+            Today&apos;s Habits
+          </h2>
+          <p className="text-xs font-secondary text-muted-foreground sm:text-sm">
+            {metrics.completedHabits}/{metrics.totalHabits} completed
+          </p>
+        </div>
+
+        <HabitListSection
+          habits={habits}
+          habitsError={habitsError}
+          isLoading={isHabitsLoading}
+          hasQueryError={hasQueryError}
+          onRetry={refetchHabits}
+          emptyMessage="No habits for today yet. Create one to get started."
+          actionsDisabled={actionsDisabled}
+          onToggleBinary={handleToggleBinary}
+          onUpdateQuantity={handleUpdateQuantity}
+          onToggleSkip={handleToggleSkip}
+          onDelete={requestDeleteHabit}
+        />
+      </section>
+
+      <Card className="py-3">
+        <CardContent className="px-3 sm:px-4">
           {isHeatMapLoading && !heatMapData ? (
-            <div className="h-[440px] animate-pulse rounded-lg border border-border bg-muted/30" />
+            <div className="h-[340px] animate-pulse rounded-lg border border-border bg-muted/30 sm:h-[520px]" />
           ) : (
             <HabitHeatMap
               year={heatMapData?.year ?? selectedYear}

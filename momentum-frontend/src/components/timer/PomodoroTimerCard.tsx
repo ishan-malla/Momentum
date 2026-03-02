@@ -2,7 +2,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Pause, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
+import { Pause, Pencil, Play, RotateCcw, Volume2, VolumeX } from "lucide-react";
 
 type TimerMode = "work" | "break";
 
@@ -17,9 +17,11 @@ type Props = {
   soundEnabled: boolean;
   workDurationMin: number;
   breakDurationMin: number;
+  showSettings: boolean;
   onStartPause: () => void;
   onReset: () => void;
   onToggleSound: () => void;
+  onToggleSettings: () => void;
   onSwitchToFocus: () => void;
   onSwitchToBreak: () => void;
 };
@@ -35,16 +37,35 @@ export default function PomodoroTimerCard({
   soundEnabled,
   workDurationMin,
   breakDurationMin,
+  showSettings,
   onStartPause,
   onReset,
   onToggleSound,
+  onToggleSettings,
   onSwitchToFocus,
   onSwitchToBreak,
 }: Props) {
   return (
-    <Card className="p-6 sm:p-10">
-      <div className="flex flex-col items-center justify-center space-y-8">
-        <div className="relative h-64 w-64 sm:h-72 sm:w-72">
+    <Card className="w-full min-h-[31rem] p-4 sm:min-h-[34rem] sm:p-6">
+      <div className="flex justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onToggleSettings}
+          className={
+            showSettings
+              ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/10"
+              : "bg-transparent hover:bg-muted"
+          }
+          aria-label="Open settings"
+        >
+          <Pencil className="h-4 w-4 mr-2" />
+          {showSettings ? "Stop editing" : "Edit"}
+        </Button>
+      </div>
+
+      <div className="mt-5 flex flex-col items-center justify-center space-y-6">
+        <div className="relative h-56 w-56 sm:h-72 sm:w-72">
           <svg className="h-full w-full -rotate-90" viewBox="0 0 100 100">
             <circle
               cx="50"
@@ -66,29 +87,29 @@ export default function PomodoroTimerCard({
               strokeDashoffset={ringOffset}
               strokeLinecap="round"
               className={[
-                "transition-[stroke-dashoffset] duration-1000",
+                "transition-[stroke-dashoffset] duration-700 ease-out",
                 mode === "break" ? "text-primary/70" : "text-primary",
               ].join(" ")}
             />
           </svg>
 
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="font-stat tabular-nums text-5xl font-bold text-foreground sm:text-6xl">
+            <div className="font-numeric tabular-nums text-4xl font-bold text-foreground sm:text-6xl">
               {String(displayMinutes).padStart(2, "0")}:
               {String(displaySeconds).padStart(2, "0")}
             </div>
-            <p className="mt-3 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            <p className="mt-3 text-sm font-medium uppercase tracking-wider text-muted-foreground">
               {mode === "break" ? "BREAK SESSION" : "FOCUS SESSION"}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
           <Button
             type="button"
             size="lg"
             onClick={onStartPause}
-            className="flex items-center gap-2 px-6 py-2.5 font-franklin"
+            className="h-11 min-w-[10.5rem] gap-2 px-5 text-base font-secondary sm:px-7"
           >
             {isRunning ? (
               <>
@@ -98,7 +119,7 @@ export default function PomodoroTimerCard({
             ) : (
               <>
                 <Play className="h-4 w-4" />
-                <span>Start</span>
+                <span>{mode === "break" ? "Start Break" : "Start Focus"}</span>
               </>
             )}
           </Button>
@@ -108,7 +129,7 @@ export default function PomodoroTimerCard({
             variant="outline"
             size="lg"
             onClick={onReset}
-            className="flex items-center gap-2 bg-transparent px-6 py-2.5 font-franklin hover:bg-muted"
+            className="h-11 min-w-[8.5rem] gap-2 bg-transparent px-5 text-base font-secondary hover:bg-muted sm:px-7"
           >
             <RotateCcw className="h-4 w-4" />
             <span>Reset</span>
@@ -135,7 +156,7 @@ export default function PomodoroTimerCard({
             type="button"
             onClick={onSwitchToFocus}
             variant="outline"
-            className={`px-4 py-2 font-franklin text-sm ${
+            className={`px-4 py-2.5 font-secondary text-base ${
               mode === "work"
                 ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/10"
                 : "bg-transparent hover:bg-muted"
@@ -148,7 +169,7 @@ export default function PomodoroTimerCard({
             type="button"
             onClick={onSwitchToBreak}
             variant="outline"
-            className={`px-4 py-2 font-franklin text-sm ${
+            className={`px-4 py-2.5 font-secondary text-base ${
               mode === "break"
                 ? "bg-primary/10 text-primary border-primary/20 hover:bg-primary/10"
                 : "bg-transparent hover:bg-muted"

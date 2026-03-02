@@ -16,7 +16,7 @@ export default function TodaysSessions({ sessions }: Props) {
   return (
     <Card>
       <div className="p-4 sm:p-6">
-        <h2 className="text-base font-serif font-bold text-foreground sm:text-lg">
+        <h2 className="text-base font-heading font-semibold text-foreground sm:text-lg">
           Today's Sessions
         </h2>
       </div>

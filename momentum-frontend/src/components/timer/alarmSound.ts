@@ -3,15 +3,19 @@ type WindowWithWebkitAudioContext = typeof window & {
 };
 
 const DEFAULT_ALARM_VOLUME = 1;
+const MAX_ALARM_REPEATS = 4;
 
 let alarmAudio: HTMLAudioElement | null = null;
 let fallbackAudioContext: AudioContext | null = null;
 let alarmPrimed = false;
 let alarmMuted = false;
 let alarmActive = false;
+let alarmPlayCount = 0;
 let activeFallbackOscillator: OscillatorNode | null = null;
 let activeFallbackGain: GainNode | null = null;
 let fallbackAlarmIntervalId: number | null = null;
+let fallbackBeepCount = 0;
+let pendingFallbackStartTimeoutId: number | null = null;
 
 const stopFallbackBeep = () => {
   if (activeFallbackOscillator) {
@@ -31,10 +35,16 @@ const stopFallbackBeep = () => {
 };
 
 const stopFallbackAlarmLoop = () => {
+  if (pendingFallbackStartTimeoutId !== null) {
+    window.clearTimeout(pendingFallbackStartTimeoutId);
+    pendingFallbackStartTimeoutId = null;
+  }
+
   if (fallbackAlarmIntervalId !== null) {
     window.clearInterval(fallbackAlarmIntervalId);
     fallbackAlarmIntervalId = null;
   }
+  fallbackBeepCount = 0;
   stopFallbackBeep();
 };
 
@@ -95,8 +105,21 @@ const playFallbackBeep = () => {
 const startFallbackAlarmLoop = () => {
   if (alarmMuted || fallbackAlarmIntervalId !== null) return;
 
+  fallbackBeepCount = 1;
   playFallbackBeep();
   fallbackAlarmIntervalId = window.setInterval(() => {
+    if (!alarmActive) {
+      stopFallbackAlarmLoop();
+      return;
+    }
+
+    if (fallbackBeepCount >= MAX_ALARM_REPEATS) {
+      alarmActive = false;
+      stopFallbackAlarmLoop();
+      return;
+    }
+
+    fallbackBeepCount += 1;
     playFallbackBeep();
   }, 700);
 };
@@ -140,11 +163,40 @@ export const primeAlarmSound = () => {
 export const playAlarmSound = () => {
   const audio = getAlarmAudio();
   alarmActive = true;
+  alarmPlayCount = 0;
   stopFallbackAlarmLoop();
-  audio.loop = true;
+  let mediaPlaybackStarted = false;
+  audio.loop = false;
   audio.currentTime = 0;
   audio.muted = alarmMuted;
   audio.volume = alarmMuted ? 0 : DEFAULT_ALARM_VOLUME;
+  audio.onplaying = () => {
+    mediaPlaybackStarted = true;
+    stopFallbackAlarmLoop();
+  };
+  audio.onended = () => {
+    if (!alarmActive) return;
+
+    alarmPlayCount += 1;
+    if (alarmPlayCount >= MAX_ALARM_REPEATS) {
+      alarmActive = false;
+      stopFallbackAlarmLoop();
+      return;
+    }
+
+    audio.currentTime = 0;
+    void audio.play().catch(() => {
+      startFallbackAlarmLoop();
+    });
+  };
+
+  if (!alarmMuted) {
+    pendingFallbackStartTimeoutId = window.setTimeout(() => {
+      if (!mediaPlaybackStarted && alarmActive) {
+        startFallbackAlarmLoop();
+      }
+    }, 350);
+  }
 
   void audio.play().catch(() => {
     startFallbackAlarmLoop();
@@ -153,7 +205,9 @@ export const playAlarmSound = () => {
 
 export const stopAlarmSound = () => {
   alarmActive = false;
+  alarmPlayCount = 0;
   if (alarmAudio) {
+    alarmAudio.onended = null;
     alarmAudio.pause();
     alarmAudio.currentTime = 0;
   }

@@ -50,6 +50,7 @@ export const getHabitTemplateById = async (req, res) => {
 export const createHabitTemplate = async (req, res) => {
   try {
     const today = dayjs().tz("Asia/Kathmandu").startOf("day");
+    const todayDate = today.toDate();
     const { name, habitType, frequency, skipDaysInAWeek } = req.body;
     const userId = req.user.id;
 
@@ -96,6 +97,44 @@ export const createHabitTemplate = async (req, res) => {
         .status(400)
         .json({ message: "Can't create habit with same name" });
 
+    const deletedHabitTemplate = await HabitTemplate.findOne({
+      user: userId,
+      name: habitName,
+      isDeleted: true,
+    });
+
+    if (deletedHabitTemplate) {
+      deletedHabitTemplate.set({
+        habitType,
+        frequency: habitType === "quantitative" ? frequency : undefined,
+        skipDaysInAWeek,
+        isDeleted: false,
+        deletedAt: null,
+      });
+
+      await deletedHabitTemplate.save();
+
+      await HabitCompletion.updateOne(
+        {
+          user: userId,
+          habitTemplate: deletedHabitTemplate._id,
+          date: todayDate,
+        },
+        {
+          $setOnInsert: {
+            user: userId,
+            habitTemplate: deletedHabitTemplate._id,
+            date: todayDate,
+          },
+        },
+        { upsert: true },
+      );
+
+      return res
+        .status(200)
+        .json({ message: `${habitName} habit restored successfully` });
+    }
+
     const newHabitTemplate = await HabitTemplate.create({
       user: userId,
       name: habitName,
@@ -107,7 +146,7 @@ export const createHabitTemplate = async (req, res) => {
     const newHabit = await HabitCompletion.create({
       user: userId,
       habitTemplate: newHabitTemplate._id,
-      date: today,
+      date: todayDate,
     });
 
     if (newHabit && newHabitTemplate)
@@ -115,6 +154,9 @@ export const createHabitTemplate = async (req, res) => {
         .status(200)
         .json({ message: `${habitName} habit created successfully` });
   } catch (error) {
+    if (error?.code === 11000) {
+      return res.status(400).json({ message: "Can't create habit with same name" });
+    }
     console.error("Habit template POST error", error);
     res.status(500).json({ message: "Server error" });
   }

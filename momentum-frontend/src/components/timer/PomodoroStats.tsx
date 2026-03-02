@@ -14,8 +14,8 @@ export default function PomodoroStats({
   xpEarned,
 }: Props) {
   return (
-    <div className="grid gap-3 sm:grid-cols-3 sm:gap-4">
-      <Card className="p-4">
+    <div className="no-scrollbar flex gap-3 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible sm:pb-0 sm:gap-4">
+      <Card className="w-[11rem] shrink-0 p-4 sm:w-auto">
         <p className="mb-1 text-xs font-franklin font-medium text-muted-foreground sm:text-sm">
           Sessions Today
         </p>
@@ -24,7 +24,7 @@ export default function PomodoroStats({
         </p>
       </Card>
 
-      <Card className="p-4">
+      <Card className="w-[11rem] shrink-0 p-4 sm:w-auto">
         <p className="mb-1 text-xs font-franklin font-medium text-muted-foreground sm:text-sm">
           Focus Time
         </p>
@@ -33,7 +33,7 @@ export default function PomodoroStats({
         </p>
       </Card>
 
-      <Card className="p-4">
+      <Card className="w-[11rem] shrink-0 p-4 sm:w-auto">
         <p className="mb-1 text-xs font-franklin font-medium text-muted-foreground sm:text-sm">
           XP Earned
         </p>

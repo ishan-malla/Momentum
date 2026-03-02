@@ -6,6 +6,7 @@ import {
 
 type HabitCardProps = {
   habit: Habit;
+  orderIndex?: number;
   actionsDisabled?: boolean;
   onToggleBinary?: (habitId: string, nextCompleted: boolean) => void;
   onUpdateQuantity?: (habitId: string, delta: 1 | -1) => void;
@@ -15,6 +16,7 @@ type HabitCardProps = {
 
 export const HabitCard = ({
   habit,
+  orderIndex = 0,
   actionsDisabled = false,
   onToggleBinary,
   onUpdateQuantity,
@@ -49,7 +51,8 @@ export const HabitCard = ({
         isComplete && isBinary
           ? "border-primary/25 bg-card"
           : "border-border bg-card hover:shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
-      } ${isSkipped ? "opacity-90" : ""}`}
+      } ${isSkipped ? "opacity-90" : ""} animate-drop-in`}
+      style={{ animationDelay: `${Math.min(orderIndex, 8) * 40}ms` }}
     >
       <div className="flex items-center justify-between gap-3">
         {isBinary && (
@@ -75,7 +78,7 @@ export const HabitCard = ({
             className={[
               "truncate text-[14px] transition-all sm:text-[15px]",
               isComplete
-                ? "text-muted-foreground/60 line-through"
+                ? "text-muted-foreground/70 line-through"
                 : isSkipped
                   ? "text-muted-foreground"
                   : "text-foreground",

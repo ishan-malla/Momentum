@@ -1,6 +1,8 @@
 import { useRef } from "react";
 import { useCalendar } from "@/hooks/useCalendarHook";
-import HabitHeatMapCircularProgress from "./HabitHeatMapCircularProgress";
+import HabitHeatMapDayCell, {
+  HabitHeatMapEmptyCell,
+} from "./HabitHeatMapDayCell";
 import HabitHeatMapLegend from "./HabitHeatMapLegend";
 import {
   WEEKDAY_LABELS,
@@ -75,11 +77,11 @@ const HabitHeatMap = ({
   return (
     <div className="animate-fade-in flex flex-col gap-6">
       <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between px-5">
-          <div className="text-lg font-semibold">
+        <div className="flex flex-wrap items-center justify-between gap-2 px-2 sm:px-4">
+          <div className="text-base font-semibold sm:text-lg">
             {calendar.monthName} {calendar.year}
           </div>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => changeMonth(-1)}
               disabled={!canGoPrev}
@@ -108,83 +110,44 @@ const HabitHeatMap = ({
         </div>
 
         {!hasData && (
-          <div className="px-5 text-xs text-muted-foreground">
+          <div className="px-3 text-xs text-muted-foreground sm:px-4">
             No habit data for this month.
           </div>
         )}
 
-        <div className="grid grid-cols-7 gap-3 px-2 text-center text-xs font-semibold text-muted-foreground">
-          {WEEKDAY_LABELS.map((label) => (
-            <div key={label}>{label}</div>
-          ))}
-        </div>
+        <div className="-mx-1 overflow-x-auto px-1 sm:mx-0 sm:px-0">
+          <div className="min-w-[20rem] space-y-2 sm:min-w-0 sm:space-y-2.5">
+            <div className="grid grid-cols-7 gap-1.5 px-0.5 text-center text-[10px] font-semibold text-muted-foreground sm:gap-2.5 sm:px-2 sm:text-xs">
+              {WEEKDAY_LABELS.map((label) => (
+                <div key={label}>{label}</div>
+              ))}
+            </div>
 
-        <div className="grid grid-cols-7 gap-3 px-2 text-center">
-          {calendar.weeks.map((week, weekIndex) =>
-            week.days.map((day, dayIndex) => {
-              if (!day) {
-                return (
-                  <div
-                    key={`empty-${weekIndex}-${dayIndex}`}
-                    className="aspect-square rounded-lg"
-                  />
-                );
-              }
+            <div className="grid grid-cols-7 gap-1.5 px-0.5 text-center sm:gap-2.5 sm:px-2">
+              {calendar.weeks.map((week, weekIndex) =>
+                week.days.map((day, dayIndex) => {
+                  if (!day) {
+                    return <HabitHeatMapEmptyCell key={`empty-${weekIndex}-${dayIndex}`} />;
+                  }
 
-              const percentage = getProgressForDay(
-                day.dayNumber,
-                calendar.totalDays,
-                progressData,
-              );
+                  const percentage = getProgressForDay(
+                    day.dayNumber,
+                    calendar.totalDays,
+                    progressData,
+                  );
 
-              return (
-                <div
-                  key={`day-${day.dayNumber}`}
-                  ref={day.isToday ? todayRef : null}
-                  className={`relative aspect-square rounded-lg text-xs ${
-                    day.isToday
-                      ? "border-2 border-warning"
-                      : "border border-border"
-                  } ${day.isFuture ? "bg-muted/40" : ""}`}
-                >
-                  {day.isToday && (
-                    <div className="pointer-events-none absolute inset-0 rounded-lg bg-warning/15" />
-                  )}
-
-                  <div className="relative z-10 flex h-full flex-col items-center justify-between py-4">
-                    <div
-                      className={`text-xs font-medium leading-none sm:text-sm ${
-                        day.isFuture
-                          ? "text-muted-foreground/50"
-                          : "text-muted-foreground"
-                      }`}
-                    >
-                      {day.dayNumber}
-                    </div>
-
-                    <div className="flex flex-1 items-center justify-center">
-                      {day.isFuture ? (
-                        <div className="flex flex-col items-center justify-center gap-0.5">
-                          <div className="h-0.5 w-6 rounded-full bg-muted-foreground/30" />
-                          <div className="h-0.5 w-2 rounded-full bg-muted-foreground/30" />
-                        </div>
-                      ) : (
-                        <HabitHeatMapCircularProgress percentage={percentage} />
-                      )}
-                    </div>
-
-                    <div
-                      className={`text-[10px] font-semibold leading-none sm:text-xs ${
-                        day.isFuture ? "invisible" : "text-muted-foreground/80"
-                      }`}
-                    >
-                      {`${percentage}%`}
-                    </div>
-                  </div>
-                </div>
-              );
-            }),
-          )}
+                  return (
+                    <HabitHeatMapDayCell
+                      key={`day-${day.dayNumber}`}
+                      day={day}
+                      percentage={percentage}
+                      todayRef={todayRef}
+                    />
+                  );
+                }),
+              )}
+            </div>
+          </div>
         </div>
       </section>
 

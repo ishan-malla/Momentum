@@ -31,13 +31,13 @@ const DeleteHabitConfirmModal = ({
         aria-modal="true"
         aria-label="Confirm habit deletion"
       >
-        <div className="flex items-start justify-between gap-4 border-b border-border px-6 py-5">
+        <div className="flex items-start justify-between gap-4 px-6 py-5">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 rounded-md bg-destructive/10 p-1.5 text-destructive">
               <AlertTriangle className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="text-lg font-serif font-semibold text-foreground">
+              <h3 className="text-lg font-heading font-semibold text-foreground">
                 Delete Habit
               </h3>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -57,7 +57,7 @@ const DeleteHabitConfirmModal = ({
           </Button>
         </div>
 
-        <div className="flex items-center justify-end gap-3 border-t border-border px-6 py-4">
+        <div className="flex items-center justify-end gap-3 px-6 py-4">
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>

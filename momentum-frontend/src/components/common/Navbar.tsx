@@ -4,7 +4,6 @@ import {
   CheckSquare,
   Home,
   Menu,
-  Settings,
   Shield,
   Timer,
   Trophy,
@@ -35,7 +34,6 @@ const Navbar = () => {
       },
       { to: "/social", label: "Social", icon: Users, end: false },
       { to: "/achievments", label: "Achievements", icon: Trophy, end: false },
-      { to: "/settings", label: "Settings", icon: Settings, end: false },
     ] as const;
 
     if (user?.role === "admin") {

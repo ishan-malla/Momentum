@@ -1,7 +1,7 @@
 import type {
   PomodoroRuntimeSettings,
   RuntimeState,
-} from "@/components/timer/usePomodoroEngine";
+} from "@/components/timer/pomodoroEngineTypes";
 
 export const getTransitionAfterCompletion = (
   prev: RuntimeState,

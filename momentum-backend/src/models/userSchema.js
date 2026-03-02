@@ -17,6 +17,18 @@ const userSchema = new mongoose.Schema(
       maxlength: 200,
       default: "",
     },
+    avatarUrl: {
+      type: String,
+      trim: true,
+      maxlength: 500,
+      default: "",
+    },
+    avatarPublicId: {
+      type: String,
+      trim: true,
+      maxlength: 200,
+      default: "",
+    },
     email: {
       type: String,
       required: true,

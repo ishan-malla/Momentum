@@ -20,7 +20,7 @@ type Props = {
 };
 
 const inputClass =
-  "h-10 w-full rounded-md border border-input bg-background px-3 font-stat text-foreground outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20";
+  "h-10 w-full rounded-md border border-input bg-background px-3 font-numeric text-foreground outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20";
 
 const normalizeNumericDraftValue = (raw: string) => {
   const digitsOnly = raw.replace(/\D/g, "");
@@ -72,7 +72,7 @@ export default function PomodoroSettingsModal({
 
         <div className="space-y-5 px-6 py-5">
           <div className="space-y-2">
-            <label className="block text-sm font-franklin font-medium text-foreground">
+            <label className="block text-sm font-secondary font-medium text-foreground">
               Focus Duration (minutes)
             </label>
             <input
@@ -91,7 +91,7 @@ export default function PomodoroSettingsModal({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-franklin font-medium text-foreground">
+            <label className="block text-sm font-secondary font-medium text-foreground">
               Break Duration (minutes)
             </label>
             <input
@@ -110,7 +110,7 @@ export default function PomodoroSettingsModal({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-franklin font-medium text-foreground">
+            <label className="block text-sm font-secondary font-medium text-foreground">
               Long Break Duration (minutes)
             </label>
             <input
@@ -129,7 +129,7 @@ export default function PomodoroSettingsModal({
           </div>
 
           <div className="space-y-2">
-            <label className="block text-sm font-franklin font-medium text-foreground">
+            <label className="block text-sm font-secondary font-medium text-foreground">
               Sessions Until Long Break
             </label>
             <input

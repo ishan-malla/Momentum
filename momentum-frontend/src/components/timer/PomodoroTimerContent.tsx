@@ -71,7 +71,9 @@ export default function PomodoroTimerContent({ dashboard }: Props) {
     onSessionCompleted: (mode) => {
       toast.success(`${mode === "work" ? "Focus" : "Break"} session complete`, {
         description:
-          mode === "work" ? "Break is ready to start." : "Focus is ready to start.",
+          mode === "work"
+            ? "Switched to Break. Press Start when ready."
+            : "Switched to Focus. Press Start when ready.",
       });
       notifyPomodoroCompletion(mode);
     },

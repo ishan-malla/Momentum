@@ -107,7 +107,7 @@ export default function PomodoroTimerContent({ dashboard }: Props) {
   const ringOffset = ringCircumference * engine.progress;
 
   return (
-    <div>
+    <div className="timer-font-scope">
       <PomodoroSettingsModal
         open={showSettings}
         draft={draftSettings}

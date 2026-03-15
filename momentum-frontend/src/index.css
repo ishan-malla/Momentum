@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Domine:wght@400..700&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Libre+Franklin:ital,wght@0,100..900;1,100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Roboto+Slab:wght@100..900&display=swap");
-
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "./styles/theme.css";

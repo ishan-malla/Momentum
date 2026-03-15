@@ -1,6 +1,21 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --base-size: 1rem;
+  --font-xxs: calc(var(--base-size) * 0.618);
+  --font-xs: calc(var(--base-size) * 1);
+  --font-sm: calc(var(--base-size) * 1.618);
+  --font-md: calc(var(--base-size) * 2.618);
+  --font-lg: calc(var(--base-size) * 4);
+  --font-xl: calc(var(--base-size) * 6.618);
+  --font-xxl: calc(var(--base-size) * 10.618);
+  --line-xxs: 1.2;
+  --line-xs: 1.4;
+  --line-sm: 1.45;
+  --line-md: 1.5;
+  --line-lg: 1.55;
+  --line-xl: 1.6;
+  --line-xxl: 1.6;
   --background: #fbfcfd;
   --foreground: #1c1917;
   --card: #ffffff;
@@ -84,11 +99,12 @@
 }
 
 @theme inline {
-  --font-primary: "Noto Sans", system-ui, sans-serif;
-  --font-secondary: "Libre Franklin", system-ui, sans-serif;
+  --font-primary: "Inter", system-ui, sans-serif;
+  --font-secondary: "Inter", system-ui, sans-serif;
   --font-heading: "Roboto Slab", serif;
-  --font-numeric: "Domine", serif;
+  --font-numeric: "Inter", system-ui, sans-serif;
   --font-display: "Libre Baskerville", serif;
+  --font-timer: "Roboto Slab", serif;
 
   --font-sans: var(--font-primary);
   --font-serif: var(--font-heading);
@@ -147,6 +163,51 @@
 
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-primary);
+    font-size: var(--font-xs);
+    line-height: var(--line-xs);
+  }
+
+  p {
+    font-size: var(--font-sm);
+    line-height: var(--line-sm);
+  }
+
+  h6 {
+    font-size: var(--font-sm);
+    line-height: var(--line-sm);
+  }
+
+  h5 {
+    font-size: var(--font-md);
+    line-height: var(--line-md);
+  }
+
+  h4 {
+    font-size: var(--font-lg);
+    line-height: var(--line-lg);
+  }
+
+  h3 {
+    font-size: var(--font-xl);
+    line-height: var(--line-xl);
+  }
+
+  h2 {
+    font-size: var(--font-xxl);
+    line-height: var(--line-xxl);
+  }
+
+  h1 {
+    font-size: calc(var(--font-xxl) * 1.5);
+    line-height: var(--line-xxl);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
   }
 
   .toaster [data-sonner-toast] {
@@ -192,5 +253,26 @@
 
   .font-elegant {
     font-family: var(--font-display);
+  }
+
+  .font-timer {
+    font-family: var(--font-timer);
+  }
+
+  .timer-font-scope,
+  .timer-font-scope * {
+    font-family: var(--font-timer);
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --base-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --base-size: 0.85rem;
   }
 }

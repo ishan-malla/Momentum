@@ -152,7 +152,6 @@ Get Started
 }
 
 // OTP EMAIL
-
 export function generateOTPEmail({ userName, otpCode, expiryMinutes = 10 }) {
   const digits = otpCode.split("");
 
@@ -173,7 +172,7 @@ export function generateOTPEmail({ userName, otpCode, expiryMinutes = 10 }) {
       ">
         ${digit}
       </td>
-    `
+    `,
     )
     .join(`<td width="8"></td>`);
 
@@ -301,6 +300,109 @@ If you didn't request this email, you can safely ignore it.
 ">
 © 2025 Momentum. All rights reserved.
 </div>
+
+</td>
+</tr>
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>
+`;
+}
+
+// TASK REMINDER EMAIL
+export function generateTaskReminderEmail({
+  userName,
+  taskName,
+  scheduledDate,
+  scheduledTime,
+  frequency,
+  reminderOffsetDays = 0,
+}) {
+  const reminderCopy =
+    reminderOffsetDays > 0
+      ? `Reminder set ${reminderOffsetDays} day${reminderOffsetDays === 1 ? "" : "s"} before`
+      : "Scheduled for today";
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="
+  margin:0;
+  padding:0;
+  background:#f5f5f4;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  color:#1c1917;
+">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="padding:32px 20px">
+<tr>
+<td align="center">
+
+<table width="560" cellpadding="0" cellspacing="0" style="
+  background:#ffffff;
+  border-radius:12px;
+  overflow:hidden;
+  max-width:100%;
+">
+
+<tr>
+<td style="padding:36px">
+
+<h1 style="
+  margin:0 0 12px 0;
+  text-align:center;
+  font-size:28px;
+  font-weight:700;
+  font-family:Georgia,'Times New Roman',Times,serif;
+  letter-spacing:-0.5px;
+  color:#1c1917;
+">
+Momentum
+</h1>
+
+<div style="
+  height:4px;
+  background:#87a96b;
+  margin:12px 0 28px;
+"></div>
+
+<p style="font-size:15px;margin:0 0 12px;color:#57534e;">
+Hi <strong>${userName}</strong>,
+</p>
+
+<p style="font-size:15px;margin:0 0 20px;color:#57534e;line-height:1.6;">
+Here is your reminder for the task:
+</p>
+
+<div style="
+  border:1px solid #e5e7eb;
+  border-radius:10px;
+  padding:16px;
+  margin-bottom:20px;
+">
+  <p style="margin:0 0 6px 0;font-size:16px;font-weight:600;color:#1c1917;">
+    ${taskName}
+  </p>
+  <p style="margin:0;font-size:14px;color:#57534e;">
+    ${scheduledDate} at ${scheduledTime}
+  </p>
+  <p style="margin:8px 0 0 0;font-size:13px;color:#7c7c7c;">
+    ${frequency} • ${reminderCopy}
+  </p>
+</div>
+
+<p style="font-size:14px;margin:0;color:#57534e;line-height:1.6;">
+You can complete this task during its ${frequency} window in Momentum.
+</p>
 
 </td>
 </tr>

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import * as React from "react";
 import { Check, MoreVertical } from "lucide-react";
 import TaskForm from "@/components/tasks/TaskForm";
 import type { Task, TaskPayload } from "@/features/tasks/taskTypes";
@@ -38,10 +38,10 @@ export default function TaskPlannerItem({
   onSave,
   onDelete,
 }: Props) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+  const menuRef = React.useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handlePointer = (event: MouseEvent) => {
       if (!menuRef.current) return;
       if (menuRef.current.contains(event.target as Node)) return;
@@ -65,6 +65,7 @@ export default function TaskPlannerItem({
           description: task.description ?? "",
           priority: task.priority,
           frequency: task.frequency,
+          completed: task.completed,
           reminder: task.reminder,
           reminderOffsetDays: task.reminderOffsetDays ?? 0,
           scheduledDate: task.scheduledDate,

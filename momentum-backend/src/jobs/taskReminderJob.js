@@ -45,12 +45,13 @@ const getReminderDateTime = (task) => {
 };
 
 export const startTaskReminderJob = () => {
-  const intervalMs = 5 * 60 * 1000;
+  const intervalMs = 60 * 1000;
 
   setInterval(async () => {
     try {
       const now = new Date();
-      const windowStart = new Date(now.getTime() - intervalMs);
+      const endOfDay = (date) =>
+        new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
 
       const tasks = await Task.find({ reminder: true }).lean();
       if (!tasks.length) return;
@@ -67,7 +68,8 @@ export const startTaskReminderJob = () => {
           const reminderDateTime = getReminderDateTime(task);
           if (!reminderDateTime) return;
 
-          if (reminderDateTime < windowStart || reminderDateTime > now) return;
+          if (reminderDateTime > now) return;
+          if (now > endOfDay(reminderDateTime)) return;
 
           const reminderKey = formatDateKey(reminderDateTime);
           if (task.reminderSentFor === reminderKey) return;

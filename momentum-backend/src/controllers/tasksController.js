@@ -12,6 +12,44 @@ const normalizeReminderOffset = (frequency, reminderOffsetDays) => {
   return Math.min(parsed, cap);
 };
 
+const parseDateParts = (value) => {
+  if (!value) return null;
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return null;
+  return { year, month: month - 1, day };
+};
+
+const isCompletionAllowed = (task, now = new Date()) => {
+  const parts = parseDateParts(task.scheduledDate);
+  if (!parts) return false;
+
+  const taskDate = new Date(parts.year, parts.month, parts.day);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  if (task.frequency === "daily") {
+    return (
+      taskDate.getFullYear() === today.getFullYear() &&
+      taskDate.getMonth() === today.getMonth() &&
+      taskDate.getDate() === today.getDate()
+    );
+  }
+
+  if (task.frequency === "weekly") {
+    const weekStart = new Date(taskDate);
+    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+    weekStart.setHours(0, 0, 0, 0);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    weekEnd.setHours(23, 59, 59, 999);
+    return today >= weekStart && today <= weekEnd;
+  }
+
+  return (
+    taskDate.getFullYear() === today.getFullYear() &&
+    taskDate.getMonth() === today.getMonth()
+  );
+};
+
 export const createTask = async (req, res) => {
   try {
     const {
@@ -23,6 +61,7 @@ export const createTask = async (req, res) => {
       reminder,
       reminderOffsetDays,
       frequency,
+      completed,
     } = req.body;
     const userId = req.user?._id;
 
@@ -60,10 +99,18 @@ export const createTask = async (req, res) => {
       reminder,
       reminderOffsetDays: normalizedReminderOffset,
       frequency,
+      completed: Boolean(completed),
+      completedAt: completed ? new Date() : undefined,
     });
 
     res.status(201).json(task);
   } catch (error) {
+    if (error?.name === "ValidationError") {
+      return res.status(400).json({
+        message: "Task validation failed",
+        error: error.message,
+      });
+    }
     res.status(500).json({ message: "Failed to create task", error: error.message });
   }
 };
@@ -111,6 +158,7 @@ export const updateTask = async (req, res) => {
       reminder,
       reminderOffsetDays,
       frequency,
+      completed,
     } = req.body;
 
     if (!validateFrequency(frequency)) {
@@ -136,6 +184,17 @@ export const updateTask = async (req, res) => {
     }
     if (frequency !== undefined) task.frequency = frequency;
 
+    if (completed !== undefined) {
+      const nextCompleted = Boolean(completed);
+      if (nextCompleted && !isCompletionAllowed(task)) {
+        return res
+          .status(400)
+          .json({ message: "Task can only be completed during its scheduled window" });
+      }
+      task.completed = nextCompleted;
+      task.completedAt = nextCompleted ? new Date() : undefined;
+    }
+
     if (
       scheduledDate !== undefined ||
       scheduledTime !== undefined ||
@@ -149,6 +208,12 @@ export const updateTask = async (req, res) => {
     await task.save();
     res.status(200).json(task);
   } catch (error) {
+    if (error?.name === "ValidationError") {
+      return res.status(400).json({
+        message: "Task validation failed",
+        error: error.message,
+      });
+    }
     res.status(500).json({ message: "Failed to update task", error: error.message });
   }
 };

@@ -323,9 +323,14 @@ export function generateTaskReminderEmail({
   frequency,
   reminderOffsetDays = 0,
 }) {
+  const reminderPlural = reminderOffsetDays === 1 ? "" : "s";
   const reminderCopy =
     reminderOffsetDays > 0
-      ? `Reminder set ${reminderOffsetDays} day${reminderOffsetDays === 1 ? "" : "s"} before`
+      ? "Reminder set " +
+        reminderOffsetDays +
+        " day" +
+        reminderPlural +
+        " before"
       : "Scheduled for today";
 
   return `

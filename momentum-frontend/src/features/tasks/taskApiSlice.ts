@@ -7,6 +7,8 @@ type TaskApiResponse = {
   description?: string;
   priority: Task["priority"];
   frequency: TaskFrequency;
+  completed: boolean;
+  completedAt?: string;
   reminder: boolean;
   reminderOffsetDays?: number;
   scheduledDate: string;
@@ -21,6 +23,8 @@ const normalizeTask = (task: TaskApiResponse): Task => ({
   description: task.description ?? "",
   priority: task.priority,
   frequency: task.frequency,
+  completed: Boolean(task.completed),
+  completedAt: task.completedAt,
   reminder: Boolean(task.reminder),
   reminderOffsetDays: task.reminderOffsetDays ?? 0,
   scheduledDate: task.scheduledDate,

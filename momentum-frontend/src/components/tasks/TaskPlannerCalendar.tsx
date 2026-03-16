@@ -5,7 +5,6 @@ import { parseTaskDateParts } from "@/features/tasks/taskDateUtils";
 
 type Props = {
   tasks: Task[];
-  completedTaskIds?: Set<string>;
   year?: number;
   month?: number;
   today?: Date;
@@ -15,7 +14,6 @@ const WEEK_LABELS = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
 
 export default function TaskPlannerCalendar({
   tasks,
-  completedTaskIds,
   year,
   month,
   today,
@@ -28,7 +26,8 @@ export default function TaskPlannerCalendar({
     tasks.forEach((task) => {
       const parts = parseTaskDateParts(task.scheduledDate);
       if (!parts) return;
-      if (parts.year !== calendar.year || parts.month !== calendar.month) return;
+      if (parts.year !== calendar.year || parts.month !== calendar.month)
+        return;
       if (parts.day < 1 || parts.day > calendar.totalDays) return;
 
       const existing = map.get(parts.day) ?? [];
@@ -80,21 +79,22 @@ export default function TaskPlannerCalendar({
 
                 <div className="mt-2 space-y-1">
                   {visibleTasks.map((task) => {
-                    const isCompleted = completedTaskIds?.has(task.id) ?? false;
+                    const isCompleted = task.completed;
                     return (
-                    <div
-                      key={task.id}
-                      className={[
-                        "truncate rounded bg-muted/40 px-1.5 py-0.5 text-[10px]",
-                        isCompleted
-                          ? "text-muted-foreground line-through"
-                          : "text-foreground/80",
-                      ].join(" ")}
-                      title={task.name}
-                    >
-                      {task.name}
-                    </div>
-                  )})}
+                      <div
+                        key={task.id}
+                        className={[
+                          "truncate rounded  px-1.5 py-0.5 text-xs bg-red-200 font-extrabold ",
+                          isCompleted
+                            ? "text-muted-foreground line-through"
+                            : "text-foreground/80",
+                        ].join(" ")}
+                        title={task.name}
+                      >
+                        {task.name}
+                      </div>
+                    );
+                  })}
                   {overflowCount > 0 && (
                     <div className="text-[10px] text-muted-foreground">
                       +{overflowCount} more

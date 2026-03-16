@@ -29,6 +29,13 @@ const taskSchema = new mongoose.Schema(
       enum: ["daily", "weekly", "monthly"],
       default: "daily",
     },
+    completed: {
+      type: Boolean,
+      default: false,
+    },
+    completedAt: {
+      type: Date,
+    },
     reminder: {
       type: Boolean,
       default: true,

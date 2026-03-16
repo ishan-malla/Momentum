@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -21,6 +22,7 @@ const DEFAULT_VALUES: TaskFormValues = {
   description: "",
   priority: "medium",
   frequency: "daily",
+  completed: false,
   reminder: true,
   reminderOffsetDays: 0,
   scheduledDate: "",
@@ -43,6 +45,9 @@ export default function TaskForm({
 }: Props) {
   const [values, setValues] = useState<TaskFormValues>(initialValues);
   const idPrefix = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const trimmedName = values.name.trim();
+  const isNameTooShort = trimmedName.length > 0 && trimmedName.length < 3;
+  const isSubmitDisabled = isSubmitting || isNameTooShort;
 
   useEffect(() => {
     setValues(initialValues);
@@ -72,6 +77,17 @@ export default function TaskForm({
     await onSubmit(values);
   };
 
+  const toggleReminder = () => {
+    setValues((prev) => {
+      const nextReminder = !prev.reminder;
+      return {
+        ...prev,
+        reminder: nextReminder,
+        reminderOffsetDays: nextReminder ? prev.reminderOffsetDays ?? 0 : 0,
+      };
+    });
+  };
+
   return (
     <Card className="p-4 sm:p-5">
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -92,8 +108,15 @@ export default function TaskForm({
               onChange={(event) => updateValue("name", event.target.value)}
               placeholder="Plan weekly review"
               className={inputClass}
+              minLength={3}
               required
+              aria-invalid={isNameTooShort}
             />
+            {isNameTooShort && (
+              <p className="text-[11px] text-destructive">
+                Task name must be at least 3 characters.
+              </p>
+            )}
           </div>
 
           <div className="space-y-1.5">
@@ -175,22 +198,23 @@ export default function TaskForm({
             />
           </div>
 
-          <label className="flex items-center gap-2 text-xs font-secondary text-muted-foreground sm:col-span-2">
-            <input
-              type="checkbox"
-              checked={values.reminder}
-              onChange={(event) => {
-                const next = event.target.checked;
-                setValues((prev) => ({
-                  ...prev,
-                  reminder: next,
-                  reminderOffsetDays: next ? prev.reminderOffsetDays ?? 0 : 0,
-                }));
-              }}
-              className="h-4 w-4 rounded border border-input accent-[var(--success)] text-success focus:ring-success"
-            />
-            Enable reminder
-          </label>
+          <div className="flex items-center gap-2 text-xs font-secondary text-muted-foreground sm:col-span-2">
+            <button
+              type="button"
+              role="checkbox"
+              aria-checked={values.reminder}
+              onClick={toggleReminder}
+              className={`flex h-6 w-6 items-center justify-center rounded transition-colors ${
+                values.reminder
+                  ? "bg-primary/70 text-primary-foreground"
+                  : "border-2 border-input hover:border-primary"
+              }`}
+              title={values.reminder ? "Reminder enabled" : "Enable reminder"}
+            >
+              {values.reminder && <Check className="h-3.5 w-3.5" />}
+            </button>
+            <span>Enable reminder</span>
+          </div>
 
           {showReminderOffset && (
             <div className="space-y-1.5 sm:col-span-2">
@@ -224,7 +248,7 @@ export default function TaskForm({
               Cancel
             </Button>
           )}
-          <Button type="submit" disabled={isSubmitting}>
+          <Button type="submit" disabled={isSubmitDisabled}>
             {isSubmitting ? "Saving..." : submitLabel}
           </Button>
         </div>

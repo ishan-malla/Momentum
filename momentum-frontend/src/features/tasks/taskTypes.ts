@@ -7,6 +7,8 @@ export type Task = {
   description?: string;
   priority: TaskPriority;
   frequency: TaskFrequency;
+  completed: boolean;
+  completedAt?: string;
   reminder: boolean;
   reminderOffsetDays?: number;
   scheduledDate: string;

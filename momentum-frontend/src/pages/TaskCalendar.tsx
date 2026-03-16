@@ -28,13 +28,39 @@ const sortTasks = (tasks: Task[]) => {
   });
 };
 
+const getApiErrorMessage = (error: unknown, fallback: string) => {
+  if (!error || typeof error !== "object") return fallback;
+
+  if ("data" in error) {
+    const data = (error as { data?: unknown }).data;
+    if (data && typeof data === "object" && "error" in data) {
+      const message = (data as { error?: string }).error;
+      if (typeof message === "string" && message.trim().length > 0) {
+        return message;
+      }
+    }
+    if (data && typeof data === "object" && "message" in data) {
+      const message = (data as { message?: string }).message;
+      if (typeof message === "string" && message.trim().length > 0) {
+        return message;
+      }
+    }
+  }
+
+  if ("error" in error) {
+    const message = (error as { error?: unknown }).error;
+    if (typeof message === "string" && message.trim().length > 0) {
+      return message;
+    }
+  }
+
+  return fallback;
+};
+
 const TaskCalendar = () => {
   const [filter, setFilter] = useState<FrequencyFilter>("all");
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [completedTaskIds, setCompletedTaskIds] = useState<Set<string>>(
-    () => new Set(),
-  );
   const [calendarYear, setCalendarYear] = useState(() => new Date().getFullYear());
   const [calendarMonth, setCalendarMonth] = useState(() => new Date().getMonth());
 
@@ -79,26 +105,15 @@ const TaskCalendar = () => {
     setCalendarMonth(now.getMonth());
   };
 
-  const toggleTaskComplete = (id: string) => {
-    setCompletedTaskIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) {
-        next.delete(id);
-      } else {
-        next.add(id);
-      }
-      return next;
-    });
-  };
-
 
   const handleCreate = async (values: TaskPayload) => {
     try {
       await createTask(values).unwrap();
       toast.success("Task created");
       setShowCreateForm(false);
-    } catch {
-      toast.error("Task creation failed");
+    } catch (error: unknown) {
+      console.error("Task creation failed", error);
+      toast.error(getApiErrorMessage(error, "Task creation failed"));
     }
   };
 
@@ -107,8 +122,9 @@ const TaskCalendar = () => {
       await updateTask({ id, patch: values }).unwrap();
       setEditingTaskId(null);
       toast.success("Task updated");
-    } catch {
-      toast.error("Task update failed");
+    } catch (error: unknown) {
+      console.error("Task update failed", error);
+      toast.error(getApiErrorMessage(error, "Task update failed"));
     }
   };
 
@@ -116,8 +132,24 @@ const TaskCalendar = () => {
     try {
       await deleteTask(id).unwrap();
       toast.success("Task deleted");
-    } catch {
-      toast.error("Task delete failed");
+    } catch (error: unknown) {
+      console.error("Task delete failed", error);
+      toast.error(getApiErrorMessage(error, "Task delete failed"));
+    }
+  };
+
+  const handleToggleComplete = async (task: Task, nextCompleted: boolean) => {
+    try {
+      await updateTask({
+        id: task.id,
+        patch: { completed: nextCompleted },
+      }).unwrap();
+    } catch (error: unknown) {
+      console.error("Task completion update failed", error);
+      const fallback = nextCompleted
+        ? "Task can only be completed during its scheduled window."
+        : "Task update failed.";
+      toast.error(getApiErrorMessage(error, fallback));
     }
   };
 
@@ -189,20 +221,19 @@ const TaskCalendar = () => {
         )}
 
         {visibleTasks.map((task) => {
-          const isToggleAllowed = canCompleteTask(task);
+          const isToggleAllowed = task.completed ? true : canCompleteTask(task);
           return (
             <TaskPlannerItem
               key={task.id}
               task={task}
-              isCompleted={completedTaskIds.has(task.id)}
+              isCompleted={task.completed}
               isToggleAllowed={isToggleAllowed}
               isEditing={editingTaskId === task.id}
               isSaving={isUpdating}
               isDeleting={isDeleting}
               onToggleComplete={() => {
-                if (isToggleAllowed) {
-                  toggleTaskComplete(task.id);
-                }
+                if (!isToggleAllowed) return;
+                handleToggleComplete(task, !task.completed);
               }}
               onEdit={() => setEditingTaskId(task.id)}
               onCancelEdit={() => setEditingTaskId(null)}
@@ -256,7 +287,6 @@ const TaskCalendar = () => {
 
           <TaskPlannerCalendar
             tasks={visibleTasks}
-            completedTaskIds={completedTaskIds}
             year={calendar.year}
             month={calendar.month}
             today={calendar.today}

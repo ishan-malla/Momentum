@@ -1,5 +1,9 @@
 import nodemailer from "nodemailer";
-import { generateOTPEmail, generateWelcomeEmail } from "./emailTemplates.js";
+import {
+  generateOTPEmail,
+  generateWelcomeEmail,
+  generateTaskReminderEmail,
+} from "./emailTemplates.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -50,6 +54,31 @@ export const sendWelcomeEmail = async (email, username) => {
     return { success: true };
   } catch (error) {
     console.error("Welcome email error:", error);
+    return { success: false };
+  }
+};
+
+export const sendTaskReminderEmail = async (email, username, task) => {
+  try {
+    const html = generateTaskReminderEmail({
+      userName: username,
+      taskName: task.name,
+      scheduledDate: task.scheduledDate,
+      scheduledTime: task.scheduledTime,
+      frequency: task.frequency,
+      reminderOffsetDays: task.reminderOffsetDays ?? 0,
+    });
+
+    await transporter.sendMail({
+      from: `"Momentum" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Task Reminder",
+      html,
+    });
+
+    return { success: true };
+  } catch (error) {
+    console.error("Task reminder email error:", error);
     return { success: false };
   }
 };

@@ -29,7 +29,8 @@ const normalizeRuntime = (
   const normalizedMode = runtime.mode === "break" ? "break" : "work";
   const fallbackDuration = getModeDuration(normalizedMode, settings);
   const normalizedDuration =
-    Number.isFinite(runtime.sessionDurationMin) && runtime.sessionDurationMin > 0
+    Number.isFinite(runtime.sessionDurationMin) &&
+    runtime.sessionDurationMin > 0
       ? Math.trunc(runtime.sessionDurationMin)
       : fallbackDuration;
 

@@ -26,10 +26,10 @@ const getRowClassName = (task: PomodoroTaskView) => {
 
 const getCheckboxClassName = (task: PomodoroTaskView) => {
   if (task.isArchived || task.isCompleted) {
-    return "border-primary/70 bg-primary/70 text-primary-foreground";
+    return "border-success/70 bg-success text-success-foreground";
   }
 
-  return "border-border bg-background text-transparent hover:border-primary/70";
+  return "border-border bg-background text-transparent hover:border-success/70";
 };
 
 const getStatusTagClassName = (task: PomodoroTaskView) => {

@@ -83,7 +83,7 @@ export const createHabit = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.error("❌ Create habit middleware error:", error.message);
+    console.error(" Create habit middleware error:", error.message);
     console.error("Stack trace:", error.stack);
     next();
   }

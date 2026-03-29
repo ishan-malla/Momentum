@@ -153,7 +153,7 @@ const Settings = () => {
     );
   }
   return (
-    <div className="mx-auto mt-6 w-full px-4 sm:px-5 xl:max-w-6xl xl:px-0">
+    <div className="mx-auto mt-6 w-full px-4 sm:px-5 xl:max-w-7xl xl:px-0">
       <div className="animate-fade-in space-y-6 sm:space-y-8">
         <SettingsHeader
           isRefreshingProfile={isProfileFetching}

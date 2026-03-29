@@ -26,8 +26,9 @@ export const HabitCard = ({
   const { habitTemplate } = habit;
   const isBinary = habitTemplate.habitType === "binary";
   const target = habitTemplate.frequency ?? 0;
-  const isComplete =
-    isBinary ? habit.completion : target > 0 && habit.quantity >= target;
+  const isComplete = isBinary
+    ? habit.completion
+    : target > 0 && habit.quantity >= target;
   const isSkipped = habit.skipped && !isComplete;
   const hasSkipSupport = habitTemplate.skipDaysInAWeek > 0;
 
@@ -66,7 +67,11 @@ export const HabitCard = ({
             onClick={() => onToggleBinary?.(habit._id, !habit.completion)}
             disabled={actionsDisabled || isSkipped}
             title={
-              isSkipped ? "Skipped today" : isComplete ? "Completed" : "Mark complete"
+              isSkipped
+                ? "Skipped today"
+                : isComplete
+                  ? "Completed"
+                  : "Mark complete"
             }
           >
             {isComplete && <Check className="h-3.5 w-3.5" />}
@@ -130,7 +135,9 @@ export const HabitCard = ({
               }
             >
               <SkipForward className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">{habit.skipped ? "Unskip" : "Skip"}</span>
+              <span className="hidden sm:inline">
+                {habit.skipped ? "Unskip" : "Skip"}
+              </span>
             </button>
           ) : (
             <span

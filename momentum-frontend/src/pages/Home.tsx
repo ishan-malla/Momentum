@@ -36,7 +36,7 @@ const Home = () => {
   return (
     <div>
       <GreetUser />
-      <section className="mx-auto mt-4 w-full space-y-4 px-4 sm:px-5 xl:max-w-6xl xl:px-0">
+      <section className="mx-auto mt-4 w-full space-y-4 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
         <h3 className="font-heading text-[24px] font-semibold text-foreground sm:text-[28px]">
           Today&apos;s Habits
         </h3>
@@ -56,7 +56,7 @@ const Home = () => {
         />
       </section>
 
-      <section className="mx-auto mt-10 w-full space-y-4 px-4 sm:px-5 xl:max-w-6xl xl:px-0">
+      <section className="mx-auto mt-10 w-full space-y-4 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
         <h3 className="font-heading text-[24px] font-semibold text-foreground sm:text-[28px]">
           Today&apos;s Tasks
         </h3>

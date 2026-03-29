@@ -3,7 +3,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function HabitSummarySkeleton() {
   return (
-    <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+    <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 3 }).map((_, index) => (
         <Card key={index} className="border-border bg-card shadow-none">
           <CardContent className="space-y-3 p-4">

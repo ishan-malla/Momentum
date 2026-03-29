@@ -8,7 +8,7 @@ const GreetUser = () => {
   const username = formatDisplayName(user?.username);
 
   return (
-    <section className="mx-auto mt-6 w-full px-4 font-timer sm:mt-7 sm:px-5 xl:max-w-6xl xl:px-0">
+    <section className="mx-auto mt-6 w-full px-4 font-timer sm:mt-7 sm:px-5 xl:max-w-7xl xl:px-0">
       <p className="text-[11px] font-secondary uppercase tracking-[0.14em] text-muted-foreground/85">
         Overview
       </p>

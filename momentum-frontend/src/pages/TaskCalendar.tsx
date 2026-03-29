@@ -154,7 +154,7 @@ const TaskCalendar = () => {
   };
 
   return (
-    <div className="mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-6xl xl:px-0">
+    <div className="mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <h1 className="text-2xl font-heading font-semibold text-foreground sm:text-3xl">

@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
-import HabitHeatMap from "@/components/calendar/HabitHeatMap";
+import HabitHeatMapCompact from "@/components/calendar/HabitHeatMapCompact";
 import CreateHabitModal from "@/components/habit/CreateHabitModal";
 import DeleteHabitConfirmModal from "@/components/habit/DeleteHabitConfirmModal";
 import HabitDashboardHeader from "@/components/habit/HabitDashboardHeader";
 import HabitListSection from "@/components/habit/HabitListSection";
-import HabitSummaryCards from "@/components/habit/HabitSummaryCards";
+import HabitSummaryCards, { StreakCard } from "@/components/habit/HabitSummaryCards";
 import HabitSummarySkeleton from "@/components/habit/HabitSummarySkeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { selectCurrentUser } from "@/features/auth/authSlice";
@@ -61,6 +61,8 @@ const Habits = () => {
   const metrics = useMemo(() => getHabitDashboardMetrics(habits), [habits]);
   const greeting = getDayGreeting();
   const username = formatDisplayName(user?.username);
+  const streakLabel =
+    metrics.maxStreak > 0 ? `${metrics.maxStreak} Day Streak Current` : "";
 
   const handleMonthChange = (year: number, month: number) => {
     setSelectedYear(year);
@@ -74,7 +76,7 @@ const Habits = () => {
   };
 
   return (
-    <div className="mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-6xl xl:px-0">
+    <div className="mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
       <HabitDashboardHeader
         greeting={greeting}
         username={username}
@@ -99,41 +101,48 @@ const Habits = () => {
           </p>
         </div>
 
-        <HabitListSection
-          habits={habits}
-          habitsError={habitsError}
-          isLoading={isHabitsLoading}
-          hasQueryError={hasQueryError}
-          onRetry={refetchHabits}
-          emptyMessage="No habits for today yet. Create one to get started."
-          actionsDisabled={actionsDisabled}
-          onToggleBinary={handleToggleBinary}
-          onUpdateQuantity={handleUpdateQuantity}
-          onToggleSkip={handleToggleSkip}
-          onDelete={requestDeleteHabit}
-        />
-      </section>
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:items-start">
+          <HabitListSection
+            habits={habits}
+            habitsError={habitsError}
+            isLoading={isHabitsLoading}
+            hasQueryError={hasQueryError}
+            onRetry={refetchHabits}
+            emptyMessage="No habits for today yet. Create one to get started."
+            actionsDisabled={actionsDisabled}
+            onToggleBinary={handleToggleBinary}
+            onUpdateQuantity={handleUpdateQuantity}
+            onToggleSkip={handleToggleSkip}
+            onDelete={requestDeleteHabit}
+          />
 
-      <Card className="py-3">
-        <CardContent className="px-3 sm:px-4">
-          {isHeatMapLoading && !heatMapData ? (
-            <div className="h-[340px] animate-pulse rounded-lg border border-border bg-muted/30 sm:h-[520px]" />
-          ) : (
-            <HabitHeatMap
-              year={heatMapData?.year ?? selectedYear}
-              month={heatMapData?.month ?? selectedMonth}
-              progressData={heatMapData?.progressData ?? []}
-              hasData={heatMapData?.hasData ?? false}
-              minYear={heatMapData?.bounds.minYear ?? selectedYear}
-              minMonth={heatMapData?.bounds.minMonth ?? selectedMonth}
-              maxYear={heatMapData?.bounds.maxYear ?? selectedYear}
-              maxMonth={heatMapData?.bounds.maxMonth ?? selectedMonth}
-              onMonthChange={handleMonthChange}
-              onTodayClick={handleTodayClick}
-            />
-          )}
-        </CardContent>
-      </Card>
+          <div className="grid gap-3 lg:self-start">
+            <StreakCard metrics={metrics} compact />
+
+            <Card className="py-3 lg:self-start">
+              <CardContent className="px-3 sm:px-4">
+                {isHeatMapLoading && !heatMapData ? (
+                  <div className="h-[280px] animate-pulse rounded-lg border border-border bg-muted/30 sm:h-[440px]" />
+                ) : (
+                  <HabitHeatMapCompact
+                    year={heatMapData?.year ?? selectedYear}
+                    month={heatMapData?.month ?? selectedMonth}
+                    progressData={heatMapData?.progressData ?? []}
+                    hasData={heatMapData?.hasData ?? false}
+                    streakLabel={streakLabel}
+                    minYear={heatMapData?.bounds.minYear ?? selectedYear}
+                    minMonth={heatMapData?.bounds.minMonth ?? selectedMonth}
+                    maxYear={heatMapData?.bounds.maxYear ?? selectedYear}
+                    maxMonth={heatMapData?.bounds.maxMonth ?? selectedMonth}
+                    onMonthChange={handleMonthChange}
+                    onTodayClick={handleTodayClick}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
 
       <CreateHabitModal
         open={isCreateModalOpen}

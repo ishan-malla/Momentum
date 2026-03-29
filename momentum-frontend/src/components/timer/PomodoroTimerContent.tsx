@@ -118,7 +118,7 @@ export default function PomodoroTimerContent({ dashboard }: Props) {
 
       <PomodoroHeader />
 
-      <main className="mx-auto w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-5 sm:py-8 xl:max-w-6xl xl:px-0">
+      <main className="mx-auto w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-5 sm:py-8 xl:max-w-7xl xl:px-0">
         <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">
           <div className="animate-drop-in">
             <PomodoroTimerCard

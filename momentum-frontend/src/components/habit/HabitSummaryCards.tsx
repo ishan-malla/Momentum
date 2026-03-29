@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, Trophy } from "lucide-react";
+import { CheckCircle2, Flame, Trophy } from "lucide-react";
 import type { HabitDashboardMetrics } from "@/features/habit/habitMetrics";
 
 type Props = {
@@ -23,7 +23,7 @@ const DailyCompletionCard = ({ metrics }: Props) => {
 
   return (
     <Card
-      className="w-[17.5rem] shrink-0 animate-drop-in border-border bg-card shadow-none min-[760px]:w-auto"
+      className="w-[17.5rem] shrink-0 min-h-[120px] animate-drop-in border-border bg-card shadow-none min-[760px]:w-auto"
       style={{ animationDelay: "40ms" }}
     >
       <CardContent className="p-3.5">
@@ -50,13 +50,55 @@ const DailyCompletionCard = ({ metrics }: Props) => {
   );
 };
 
+type StreakCardProps = Props & {
+  compact?: boolean;
+};
+
+export const StreakCard = ({ metrics, compact = false }: StreakCardProps) => {
+  const streakDays = metrics.maxStreak;
+  const dayLabel = streakDays === 1 ? "day" : "days";
+  const helperText =
+    streakDays > 0
+      ? "Longest streak across your habits."
+      : "Complete a habit consistently to build a streak.";
+
+  return (
+    <Card
+      className={`animate-drop-in border-border bg-card shadow-none ${
+        compact
+          ? "w-full min-h-[60px]"
+          : "w-[17.5rem] shrink-0 min-h-[120px] min-[760px]:w-auto"
+      }`}
+      style={{ animationDelay: "80ms" }}
+    >
+      <CardContent className={compact ? "px-3 py-2.5" : "p-3.5"}>
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-[11px] font-secondary uppercase tracking-[0.12em] text-muted-foreground">
+            Best Streak
+          </p>
+          <Flame className="h-4 w-4 text-streak" />
+        </div>
+
+        <div className="mt-2 flex items-end gap-2">
+          <p className="font-heading text-3xl font-semibold leading-none text-foreground">
+            {streakDays}
+          </p>
+          <span className="pb-0.5 text-xs text-muted-foreground">{dayLabel}</span>
+        </div>
+
+        {!compact && <p className="mt-1 text-xs text-muted-foreground">{helperText}</p>}
+      </CardContent>
+    </Card>
+  );
+};
+
 const NearestHabitCard = ({ metrics }: Props) => {
   const nearest = metrics.nearestHabit;
 
   return (
     <Card
-      className="w-[17.5rem] shrink-0 animate-drop-in border-border bg-card shadow-none min-[760px]:w-auto"
-      style={{ animationDelay: "80ms" }}
+      className="w-[17.5rem] shrink-0 min-h-[120px] animate-drop-in border-border bg-card shadow-none min-[760px]:w-auto"
+      style={{ animationDelay: "120ms" }}
     >
       <CardContent className="p-3.5">
         <p className="text-[11px] font-secondary uppercase tracking-[0.12em] text-muted-foreground">
@@ -111,8 +153,8 @@ const MilestoneCard = ({ metrics }: Props) => {
 
   return (
     <Card
-      className="w-[17.5rem] shrink-0 animate-drop-in border-primary/20 bg-primary/95 text-primary-foreground shadow-none min-[760px]:w-auto"
-      style={{ animationDelay: "120ms" }}
+      className="w-[17.5rem] shrink-0 min-h-[120px] animate-drop-in border-primary/20 bg-primary/95 text-primary-foreground shadow-none min-[760px]:w-auto"
+      style={{ animationDelay: "160ms" }}
     >
       <CardContent className="p-3.5">
         <div className="flex items-start justify-between gap-3">
@@ -138,7 +180,7 @@ const MilestoneCard = ({ metrics }: Props) => {
 
 export default function HabitSummaryCards({ metrics }: Props) {
   return (
-    <section className="no-scrollbar flex gap-3 overflow-x-auto pb-1 min-[760px]:grid min-[760px]:grid-cols-3 min-[760px]:overflow-visible">
+    <section className="no-scrollbar flex gap-3 overflow-x-auto pb-1 min-[760px]:grid min-[760px]:grid-cols-2 min-[1024px]:grid-cols-3 min-[760px]:overflow-visible">
       <DailyCompletionCard metrics={metrics} />
       <NearestHabitCard metrics={metrics} />
       <MilestoneCard metrics={metrics} />

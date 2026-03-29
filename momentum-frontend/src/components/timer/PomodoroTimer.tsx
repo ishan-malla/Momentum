@@ -7,7 +7,7 @@ export default function PomodoroTimer() {
 
   if (isLoading && !data) {
     return (
-      <div className="mx-auto mt-8 w-full px-4 sm:px-5 xl:max-w-6xl xl:px-0">
+      <div className="mx-auto mt-8 w-full px-4 sm:px-5 xl:max-w-7xl xl:px-0">
         <p className="text-sm text-muted-foreground">Loading pomodoro...</p>
       </div>
     );
@@ -15,7 +15,7 @@ export default function PomodoroTimer() {
 
   if (error && !data) {
     return (
-      <div className="mx-auto mt-8 w-full space-y-3 px-4 sm:px-5 xl:max-w-6xl xl:px-0">
+      <div className="mx-auto mt-8 w-full space-y-3 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
         <p className="text-sm text-destructive">Could not load pomodoro data.</p>
         <Button
           type="button"

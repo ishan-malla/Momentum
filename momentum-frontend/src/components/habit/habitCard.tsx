@@ -48,7 +48,7 @@ export const HabitCard = ({
 
   return (
     <div
-      className={`w-full rounded-lg border p-3 transition-all sm:p-4 ${
+      className={`group w-full rounded-lg border p-3 transition-all sm:p-4 ${
         isComplete && isBinary
           ? "border-primary/25 bg-card"
           : "border-border bg-card hover:shadow-[0_1px_2px_rgba(0,0,0,0.05)]"
@@ -91,11 +91,6 @@ export const HabitCard = ({
           >
             {habitTemplate.name}
           </h4>
-          {isSkipped && (
-            <p className="mt-1 text-[10px] leading-none text-muted-foreground/60 sm:text-[11px]">
-              Skipped today
-            </p>
-          )}
           {habitTemplate.habitType === "quantitative" && (
             <p className="mt-1 text-[10px] leading-none text-muted-foreground/60 sm:text-[11px]">
               Daily target: {target}
@@ -106,8 +101,8 @@ export const HabitCard = ({
               {noSkipsRemaining
                 ? "No skips remaining this week"
                 : skipsRemaining !== null
-                  ? `Skips remaining this week: ${skipsRemaining}`
-                  : "Skips remaining this week: --"}
+                  ? `${skipsRemaining} ${skipsRemaining === 1 ? "skip" : "skips"} remaining this week`
+                  : "-- skips remaining this week"}
             </p>
           )}
         </div>
@@ -148,7 +143,7 @@ export const HabitCard = ({
 
           <button
             type="button"
-            className="flex h-7 w-7 items-center justify-center rounded-md text-destructive/70 transition-all hover:bg-destructive/10 hover:text-destructive"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-destructive/70 transition-all hover:bg-destructive/10 hover:text-destructive sm:pointer-events-none sm:opacity-0 sm:group-hover:pointer-events-auto sm:group-hover:opacity-100 sm:group-focus-within:pointer-events-auto sm:group-focus-within:opacity-100"
             onClick={() => onDelete?.(habitTemplate._id, habitTemplate.name)}
             disabled={actionsDisabled}
             title="Delete habit"
@@ -169,7 +164,7 @@ export const HabitCard = ({
             <Minus className="h-3 w-3" />
           </button>
 
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-secondary">
+          <div className="h-2 flex-1 overflow-hidden rounded-full bg-muted">
             <div
               className="h-full bg-primary transition-all duration-300"
               style={{ width: `${progress}%` }}

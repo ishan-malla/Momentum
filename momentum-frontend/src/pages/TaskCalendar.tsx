@@ -260,7 +260,7 @@ const TaskCalendar = () => {
               <button
                 type="button"
                 onClick={handlePrevMonth}
-                className="flex h-7 w-9 items-center justify-center rounded-md border border-border transition-colors hover:bg-accent"
+                className="flex h-7 w-9 items-center justify-center rounded-md border border-border transition-colors hover:bg-muted/60"
                 aria-label="Previous month"
               >
                 ←
@@ -268,7 +268,7 @@ const TaskCalendar = () => {
               <button
                 type="button"
                 onClick={handleNextMonth}
-                className="flex h-7 w-9 items-center justify-center rounded-md border border-border transition-colors hover:bg-accent"
+                className="flex h-7 w-9 items-center justify-center rounded-md border border-border transition-colors hover:bg-muted/60"
                 aria-label="Next month"
               >
                 →
@@ -277,7 +277,7 @@ const TaskCalendar = () => {
                 <button
                   type="button"
                   onClick={handleToday}
-                  className="h-7 rounded-md border border-border px-3 text-xs font-medium transition-colors hover:bg-accent"
+                  className="h-7 rounded-md border border-border px-3 text-xs font-medium transition-colors hover:bg-muted/60"
                 >
                   Today
                 </button>

@@ -22,7 +22,7 @@ const HabitHeatMapLegend = () => {
           <button
             type="button"
             onClick={() => setShowDeletedHabitsInfo((previous) => !previous)}
-            className="flex h-5 w-5 items-center justify-center rounded-full border border-border text-[11px] font-semibold text-muted-foreground/65 transition-colors hover:bg-accent hover:text-muted-foreground"
+            className="flex h-5 w-5 items-center justify-center rounded-full border border-border text-[11px] font-semibold text-muted-foreground/65 transition-colors hover:bg-muted/60 hover:text-muted-foreground"
             aria-label="Heatmap information"
             aria-expanded={showDeletedHabitsInfo}
           >

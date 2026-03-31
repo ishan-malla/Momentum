@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Flame, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
 type Props = {
   greeting: string;
@@ -18,7 +18,7 @@ export default function HabitDashboardHeader({
   greeting,
   username,
   totalHabits,
-  bestStreak,
+
   onAddHabit,
 }: Props) {
   return (
@@ -34,10 +34,10 @@ export default function HabitDashboardHeader({
           </p>
 
           <div className="flex shrink-0 items-center gap-2.5 self-end sm:self-auto">
-            <div className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-secondary px-3 text-sm font-secondary text-foreground">
+            {/* <div className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-secondary px-3 text-sm font-secondary text-foreground">
               <Flame className="h-4 w-4 text-streak" />
               <span className="font-medium">{bestStreak}-day streak</span>
-            </div>
+            </div> */}
 
             <Button
               type="button"

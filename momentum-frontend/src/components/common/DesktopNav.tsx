@@ -9,7 +9,7 @@ import {
 import { Link, useLocation } from "react-router";
 
 const isActive = "border-b-3 border-primary text-primary";
-const notActiveStyle = "text-muted-foreground hover:text-accent-foreground";
+const notActiveStyle = "text-muted-foreground hover:text-foreground";
 
 const navLinks = [
   { tabName: "Overview", route: "/home", icon: <Target size={16} /> },

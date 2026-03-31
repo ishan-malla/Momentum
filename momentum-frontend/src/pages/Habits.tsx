@@ -5,7 +5,9 @@ import CreateHabitModal from "@/components/habit/CreateHabitModal";
 import DeleteHabitConfirmModal from "@/components/habit/DeleteHabitConfirmModal";
 import HabitDashboardHeader from "@/components/habit/HabitDashboardHeader";
 import HabitListSection from "@/components/habit/HabitListSection";
-import HabitSummaryCards, { StreakCard } from "@/components/habit/HabitSummaryCards";
+import HabitSummaryCards, {
+  StreakCard,
+} from "@/components/habit/HabitSummaryCards";
 import HabitSummarySkeleton from "@/components/habit/HabitSummarySkeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { selectCurrentUser } from "@/features/auth/authSlice";
@@ -119,10 +121,10 @@ const Habits = () => {
           <div className="grid gap-3 lg:self-start">
             <StreakCard metrics={metrics} compact />
 
-            <Card className="py-3 lg:self-start">
+            <Card className="py-4 lg:self-start">
               <CardContent className="px-3 sm:px-4">
                 {isHeatMapLoading && !heatMapData ? (
-                  <div className="h-[280px] animate-pulse rounded-lg border border-border bg-muted/30 sm:h-[440px]" />
+                  <div className="h-[300px] animate-pulse rounded-lg border border-border bg-muted/30 sm:h-[460px]" />
                 ) : (
                   <HabitHeatMapCompact
                     year={heatMapData?.year ?? selectedYear}

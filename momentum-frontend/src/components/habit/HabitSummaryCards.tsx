@@ -219,7 +219,7 @@ export const StreakCard = ({ metrics, compact = false }: StreakCardProps) => {
                       compact ? "h-5.5 w-5.5" : "h-6.5 w-6.5"
                     } ${
                       isActive
-                        ? "bg-streak text-streak-foreground shadow-[0_8px_16px_rgba(224,122,95,0.22)]"
+                        ? "bg-primary/15 text-primary shadow-[0_8px_16px_rgba(97,129,100,0.16)]"
                         : "bg-[#ddd6c8] text-[#fffdfa]"
                     }`}
                   >

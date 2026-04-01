@@ -1,6 +1,5 @@
 import {
   Calendar,
-  ChartColumnDecreasing,
   CheckSquare,
   Home,
   Menu,
@@ -26,12 +25,6 @@ const Navbar = () => {
       { to: "/habits", label: "Habits", icon: CheckSquare, end: false },
       { to: "/timer", label: "Timer", icon: Timer, end: false },
       { to: "/task-calendar", label: "Tasks & Calendar", icon: Calendar, end: false },
-      {
-        to: "/analytics",
-        label: "Analytics",
-        icon: ChartColumnDecreasing,
-        end: false,
-      },
       { to: "/social", label: "Social", icon: Users, end: false },
       { to: "/achievments", label: "Achievements", icon: Trophy, end: false },
     ] as const;

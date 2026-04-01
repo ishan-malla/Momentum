@@ -1,6 +1,5 @@
 import {
   Calendar,
-  ChartColumnDecreasing,
   Check,
   Clock,
   Target,
@@ -20,11 +19,6 @@ const navLinks = [
     route: "/task-calendar",
     icon: <Calendar size={16} />,
   },
-  {
-    tabName: "Analytics",
-    route: "/analytics",
-    icon: <ChartColumnDecreasing size={16} />,
-  },
   { tabName: "Social", route: "/social", icon: <Users size={16} /> },
 ];
 
@@ -35,11 +29,15 @@ const DesktopNav = () => {
     <div className="bg-card border-b border-border sticky hidden md:flex h-11 items-center p-5 xl:p-0">
       <div className="w-full xl:max-w-7xl mx-auto hidden md:flex h-full items-center justify-between space-x-4 px-4 xl:px-0">
         {navLinks.map((tab, index) => {
+          const tabIsActive =
+            pathname === tab.route ||
+            (tab.route !== "/home" && pathname.startsWith(`${tab.route}/`));
+
           return (
             <Link
               to={tab.route}
               className={` h-11  text-sm text-muted-foreground flex items-center gap-2  p-2  ${
-                pathname === tab.route ? isActive : notActiveStyle
+                tabIsActive ? isActive : notActiveStyle
               }`}
               key={index}
             >

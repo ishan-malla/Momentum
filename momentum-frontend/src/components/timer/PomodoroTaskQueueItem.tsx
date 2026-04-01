@@ -25,11 +25,15 @@ const getRowClassName = (task: PomodoroTaskView) => {
 };
 
 const getCheckboxClassName = (task: PomodoroTaskView) => {
-  if (task.isArchived || task.isCompleted) {
-    return "border-success/70 bg-success text-success-foreground";
+  if (task.isArchived) {
+    return "bg-primary/70 text-primary-foreground opacity-70";
   }
 
-  return "border-border bg-background text-transparent hover:border-success/70";
+  if (task.isCompleted) {
+    return "bg-primary/70 text-primary-foreground";
+  }
+
+  return "border-2 border-input bg-transparent text-transparent hover:border-primary";
 };
 
 const getStatusTagClassName = (task: PomodoroTaskView) => {
@@ -71,12 +75,13 @@ export default function PomodoroTaskQueueItem({ task, animation, onToggle }: Pro
         type="button"
         onClick={() => onToggle(task.id)}
         aria-label={getToggleAriaLabel(task)}
+        disabled={task.isArchived}
         className={[
-          "flex h-5 w-5 shrink-0 self-center items-center justify-center rounded-[6px] border transition-[background-color,border-color,color,transform] duration-200",
+          "flex h-6 w-6 shrink-0 self-center items-center justify-center rounded transition-colors disabled:cursor-not-allowed",
           getCheckboxClassName(task),
         ].join(" ")}
       >
-        <Check className="h-3 w-3" />
+        <Check className="h-3.5 w-3.5" />
       </button>
 
       <div className="min-w-0 flex-1">

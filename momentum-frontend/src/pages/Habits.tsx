@@ -85,6 +85,7 @@ const Habits = () => {
         totalHabits={metrics.totalHabits}
         bestStreak={metrics.maxStreak}
         onAddHabit={openCreateModal}
+        analyticsPath="/habits/analytics"
       />
 
       {isHabitsLoading ? (

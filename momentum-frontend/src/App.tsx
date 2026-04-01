@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router";
+import { Navigate, Route, Routes } from "react-router";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
 import AuthLayout from "./pages/auth/AuthLayout";
@@ -28,9 +28,13 @@ function App() {
           <Route element={<AppLayout />}>
             <Route path="/home" element={<Home />} />
             <Route path="/habits" element={<Habits />} />
+            <Route path="/habits/analytics" element={<Analytics />} />
             <Route path="/timer" element={<Timer />} />
             <Route path="/task-calendar" element={<TaskCalendar />} />
-            <Route path="/analytics" element={<Analytics />} />
+            <Route
+              path="/analytics"
+              element={<Navigate to="/habits/analytics" replace />}
+            />
             <Route path="/social" element={<Social />} />
             <Route path="/achievments" element={<Achievments />}></Route>
             <Route path="/settings" element={<Settings />}></Route>

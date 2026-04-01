@@ -2,7 +2,6 @@ import { selectCurrentUser } from "@/features/auth/authSlice";
 import { useLogoutMutation } from "@/features/auth/authApiSlice";
 import {
   Calendar,
-  ChartColumnDecreasing,
   CheckSquare,
   ChevronRight,
   LogOut,
@@ -32,12 +31,6 @@ const AppSidebar = () => {
       { to: "/habits", label: "Habits", icon: CheckSquare, end: false },
       { to: "/timer", label: "Timer", icon: Timer, end: false },
       { to: "/task-calendar", label: "Tasks & Calendar", icon: Calendar, end: false },
-      {
-        to: "/analytics",
-        label: "Analytics",
-        icon: ChartColumnDecreasing,
-        end: false,
-      },
       { to: "/social", label: "Social", icon: Users, end: false },
       { to: "/achievments", label: "Achievements", icon: Trophy, end: false },
     ];

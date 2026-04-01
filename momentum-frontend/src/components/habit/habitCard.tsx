@@ -91,11 +91,6 @@ export const HabitCard = ({
           >
             {habitTemplate.name}
           </h4>
-          {habitTemplate.habitType === "quantitative" && (
-            <p className="mt-1 text-[10px] leading-none text-muted-foreground/60 sm:text-[11px]">
-              Daily target: {target}
-            </p>
-          )}
           {hasSkipSupport && (
             <p className="mt-1 text-[10px] leading-none text-muted-foreground/60 sm:text-[11px]">
               {noSkipsRemaining

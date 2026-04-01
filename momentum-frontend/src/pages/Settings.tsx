@@ -28,9 +28,12 @@ const Settings = () => {
   const navigate = useNavigate();
   const user = useSelector(selectCurrentUser);
   const [logout, { isLoading: isLoggingOut }] = useLogoutMutation();
-  const [updateProfile, { isLoading: isSavingProfile }] = useUpdateProfileMutation();
-  const [uploadAvatar, { isLoading: isUploadingAvatar }] = useUploadAvatarMutation();
-  const [removeAvatar, { isLoading: isRemovingAvatar }] = useRemoveAvatarMutation();
+  const [updateProfile, { isLoading: isSavingProfile }] =
+    useUpdateProfileMutation();
+  const [uploadAvatar, { isLoading: isUploadingAvatar }] =
+    useUploadAvatarMutation();
+  const [removeAvatar, { isLoading: isRemovingAvatar }] =
+    useRemoveAvatarMutation();
   const {
     data: profileData,
     isLoading: isProfileLoading,
@@ -44,9 +47,12 @@ const Settings = () => {
   const [draftUsername, setDraftUsername] = useState("");
   const [draftBio, setDraftBio] = useState("");
   const [isReadingAvatarFile, setIsReadingAvatarFile] = useState(false);
-  const isAvatarBusy = isReadingAvatarFile || isUploadingAvatar || isRemovingAvatar;
-  const displayedUsername = isEditing ? draftUsername : profile?.username ?? "";
-  const displayedBio = isEditing ? draftBio : profile?.bio ?? "";
+  const isAvatarBusy =
+    isReadingAvatarFile || isUploadingAvatar || isRemovingAvatar;
+  const displayedUsername = isEditing
+    ? draftUsername
+    : (profile?.username ?? "");
+  const displayedBio = isEditing ? draftBio : (profile?.bio ?? "");
   const displayedAvatarUrl = profile?.avatarUrl ?? "";
   const avatarLetter = useMemo(() => {
     const firstCharacter = displayedUsername.trim().charAt(0);
@@ -84,7 +90,10 @@ const Settings = () => {
         setDraftBio(response.profile.bio ?? "");
       }
     } catch (error) {
-      const message = getApiErrorMessage(error, "Could not upload avatar image.");
+      const message = getApiErrorMessage(
+        error,
+        "Could not upload avatar image.",
+      );
       toast.error("Avatar upload failed", { description: message });
     } finally {
       setIsReadingAvatarFile(false);
@@ -96,7 +105,10 @@ const Settings = () => {
       toast.success("Avatar removed");
       void refetch();
     } catch (error) {
-      const message = getApiErrorMessage(error, "Could not remove avatar image.");
+      const message = getApiErrorMessage(
+        error,
+        "Could not remove avatar image.",
+      );
       toast.error("Avatar remove failed", { description: message });
     }
   };

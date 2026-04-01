@@ -2,7 +2,6 @@ import { selectCurrentUser } from "@/features/auth/authSlice";
 import { useLogoutMutation } from "@/features/auth/authApiSlice";
 import {
   Calendar,
-  ChartColumnDecreasing,
   CheckSquare,
   ChevronRight,
   LogOut,
@@ -32,12 +31,6 @@ const AppSidebar = () => {
       { to: "/habits", label: "Habits", icon: CheckSquare, end: false },
       { to: "/timer", label: "Timer", icon: Timer, end: false },
       { to: "/task-calendar", label: "Tasks & Calendar", icon: Calendar, end: false },
-      {
-        to: "/analytics",
-        label: "Analytics",
-        icon: ChartColumnDecreasing,
-        end: false,
-      },
       { to: "/social", label: "Social", icon: Users, end: false },
       { to: "/achievments", label: "Achievements", icon: Trophy, end: false },
     ];
@@ -95,9 +88,9 @@ const AppSidebar = () => {
   };
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[21rem] border-r border-border/70 bg-card shadow-[8px_0_24px_rgba(28,25,23,0.06)] md:block">
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[21rem] border-r border-sidebar-border/80 bg-sidebar shadow-[8px_0_24px_rgba(28,25,23,0.06)] md:block">
       <div className="flex h-full flex-col">
-        <div className="border-b border-border/60 px-5 py-5">
+        <div className="border-b border-sidebar-border/70 px-5 py-5">
           <h1 className="font-display text-xl font-semibold tracking-tight text-foreground">
             Momentum
           </h1>
@@ -117,8 +110,8 @@ const AppSidebar = () => {
                   [
                     "group flex items-center gap-3 rounded-lg border px-3.5 py-2.5 text-[15px] font-secondary transition-all",
                     isActive
-                      ? "border-border bg-secondary text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
-                      : "border-transparent text-muted-foreground hover:border-border/70 hover:bg-secondary hover:text-foreground",
+                      ? "border-sidebar-border bg-sidebar-accent text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
+                      : "border-transparent text-muted-foreground hover:border-sidebar-border/80 hover:bg-sidebar-accent/80 hover:text-foreground",
                   ].join(" ")
                 }
               >
@@ -140,12 +133,12 @@ const AppSidebar = () => {
           </div>
         </nav>
 
-        <div className="border-t border-border/70 p-4">
+        <div className="border-t border-sidebar-border/80 p-4">
           <div ref={accountMenuRef} className="relative">
             <button
               type="button"
               onClick={() => setIsAccountMenuOpen((previous) => !previous)}
-              className="flex w-full items-center gap-3 rounded-md px-1 py-1 transition-colors hover:bg-secondary"
+              className="flex w-full items-center gap-3 rounded-md px-1 py-1 transition-colors hover:bg-sidebar-accent/80"
               aria-label="Open account menu"
               aria-expanded={isAccountMenuOpen}
             >
@@ -177,11 +170,11 @@ const AppSidebar = () => {
             </button>
 
             {isAccountMenuOpen && (
-              <div className="absolute bottom-14 right-0 z-50 w-[57.5%] overflow-hidden rounded-md border border-border bg-card shadow-[0_10px_26px_rgba(28,25,23,0.12)]">
+              <div className="absolute bottom-14 right-0 z-50 w-[57.5%] overflow-hidden rounded-md border border-sidebar-border bg-sidebar shadow-[0_10px_26px_rgba(28,25,23,0.12)]">
                 <button
                   type="button"
                   onClick={handleOpenSettings}
-                  className="flex w-full items-center gap-2 px-3 py-[0.5625rem] text-left text-xs font-secondary text-foreground transition-colors hover:bg-secondary"
+                  className="flex w-full items-center gap-2 px-3 py-[0.5625rem] text-left text-xs font-secondary text-foreground transition-colors hover:bg-sidebar-accent/80"
                 >
                   <Settings className="h-4 w-4" />
                   <span>Settings</span>
@@ -191,7 +184,7 @@ const AppSidebar = () => {
                   type="button"
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className="flex w-full items-center gap-2 px-3 py-[0.5625rem] text-left text-xs font-secondary text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex w-full items-center gap-2 px-3 py-[0.5625rem] text-left text-xs font-secondary text-destructive transition-colors hover:bg-sidebar-accent/80 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>

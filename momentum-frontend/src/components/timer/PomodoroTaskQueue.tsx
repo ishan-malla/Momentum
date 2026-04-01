@@ -1,5 +1,4 @@
 import { type FormEvent, useMemo, useState } from "react";
-import { CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import PomodoroTaskComposer from "@/components/timer/PomodoroTaskComposer";
@@ -44,7 +43,9 @@ export default function PomodoroTaskQueue() {
     archiveCompletedTasks,
     clearArchived,
   } = usePomodoroTaskQueue();
-  const activeCompletedCount = activeTasks.filter((task) => task.completedAt).length;
+  const activeCompletedCount = activeTasks.filter(
+    (task) => task.completedAt,
+  ).length;
   const visibleTasks = useMemo(
     () => createVisibleTasks(activeTasks, archivedTasks, showArchived),
     [activeTasks, archivedTasks, showArchived],
@@ -60,7 +61,9 @@ export default function PomodoroTaskQueue() {
     setIsComposerOpen(false);
     setEnteringTaskId(createdTaskId);
     window.setTimeout(() => {
-      setEnteringTaskId((previous) => (previous === createdTaskId ? null : previous));
+      setEnteringTaskId((previous) =>
+        previous === createdTaskId ? null : previous,
+      );
     }, CREATE_ANIMATION_MS);
   };
 
@@ -105,8 +108,7 @@ export default function PomodoroTaskQueue() {
     <Card className="w-full rounded-2xl border border-border/80 bg-card p-4 shadow-none sm:p-5">
       <div className="space-y-4">
         <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-            <CheckSquare className="h-4 w-4 text-success" />
+          <div className="flex items-center gap-2.5">
             <h2 className="text-lg font-heading font-semibold text-foreground">
               Task Queue
             </h2>

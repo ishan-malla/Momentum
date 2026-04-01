@@ -104,10 +104,16 @@ export const createHabitTemplate = async (req, res) => {
     });
 
     if (deletedHabitTemplate) {
+      await HabitCompletion.deleteMany({
+        user: userId,
+        habitTemplate: deletedHabitTemplate._id,
+      });
+
       deletedHabitTemplate.set({
         habitType,
         frequency: habitType === "quantitative" ? frequency : undefined,
         skipDaysInAWeek,
+        streak: 0,
         isDeleted: false,
         deletedAt: null,
       });
@@ -132,7 +138,7 @@ export const createHabitTemplate = async (req, res) => {
 
       return res
         .status(200)
-        .json({ message: `${habitName} habit restored successfully` });
+        .json({ message: `${habitName} habit created successfully` });
     }
 
     const newHabitTemplate = await HabitTemplate.create({

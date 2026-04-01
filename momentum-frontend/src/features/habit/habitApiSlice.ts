@@ -1,4 +1,8 @@
 import { apiSlice } from "@/api/apiSlice";
+import type {
+  HabitAnalyticsQuery,
+  HabitAnalyticsResponse,
+} from "@/features/habit/habitAnalytics";
 
 export type HabitType = "binary" | "quantitative";
 
@@ -137,6 +141,17 @@ export const habitApiSlice = apiSlice.injectEndpoints({
       },
     ),
 
+    getHabitAnalytics: builder.query<HabitAnalyticsResponse, HabitAnalyticsQuery>(
+      {
+        query: ({ days = 14 }) => ({
+          url: "/habit/analytics",
+          method: "GET",
+          params: { days },
+        }),
+        providesTags: ["Habits"],
+      },
+    ),
+
     deleteHabitTemplate: builder.mutation<
       MessageResponse,
       { habitTemplateId: string }
@@ -157,5 +172,6 @@ export const {
   useUpdateSkipHabitMutation,
   useGetSkipInfoQuery,
   useGetHabitHeatMapQuery,
+  useGetHabitAnalyticsQuery,
   useDeleteHabitTemplateMutation,
 } = habitApiSlice;

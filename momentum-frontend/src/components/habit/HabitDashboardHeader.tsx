@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Flame, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Link } from "react-router";
 
 type Props = {
   greeting: string;
@@ -7,6 +8,7 @@ type Props = {
   totalHabits: number;
   bestStreak: number;
   onAddHabit: () => void;
+  analyticsPath: string;
 };
 
 const getHabitCountText = (totalHabits: number) => {
@@ -18,8 +20,8 @@ export default function HabitDashboardHeader({
   greeting,
   username,
   totalHabits,
-  bestStreak,
   onAddHabit,
+  analyticsPath,
 }: Props) {
   return (
     <section className="py-1">
@@ -34,10 +36,19 @@ export default function HabitDashboardHeader({
           </p>
 
           <div className="flex shrink-0 items-center gap-2.5 self-end sm:self-auto">
-            <div className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-secondary px-3 text-sm font-secondary text-foreground">
+            {/* <div className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-secondary px-3 text-sm font-secondary text-foreground">
               <Flame className="h-4 w-4 text-streak" />
               <span className="font-medium">{bestStreak}-day streak</span>
-            </div>
+            </div> */}
+
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="h-9 border-border/80 bg-card px-3.5 text-sm text-foreground hover:bg-muted/60"
+            >
+              <Link to={analyticsPath}>See analytics</Link>
+            </Button>
 
             <Button
               type="button"

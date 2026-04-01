@@ -85,11 +85,11 @@ const HabitHeatMapCompact = ({
   return (
     <div className="animate-fade-in flex flex-col gap-3">
       <section className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-center justify-between gap-2 px-2 sm:px-3">
+        <div className="flex flex-col gap-2 px-2 sm:flex-row sm:items-center sm:justify-between sm:px-3">
           <div className="font-heading text-base font-semibold text-foreground sm:text-lg">
             {calendar.monthName} {calendar.year}
           </div>
-          <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex w-full items-center justify-end gap-1.5 sm:w-auto sm:gap-2">
             <button
               onClick={() => changeMonth(-1)}
               disabled={!canGoPrev}
@@ -109,7 +109,7 @@ const HabitHeatMapCompact = ({
             {!calendar.isCurrentMonth && (
               <button
                 onClick={handleTodayClick}
-                className="h-7 rounded-full border border-border px-3 text-[11px] font-medium transition-colors hover:bg-accent"
+                className="h-7 rounded-full border border-border px-3 text-[11px] font-medium transition-colors hover:bg-muted/60"
               >
                 Today
               </button>

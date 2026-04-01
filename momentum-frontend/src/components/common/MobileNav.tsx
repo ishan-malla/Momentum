@@ -1,6 +1,5 @@
 import {
   Calendar,
-  ChartColumnDecreasing,
   CheckSquare,
   Home,
   Timer,
@@ -15,7 +14,6 @@ const navItems = [
   { to: "/habits", label: "Habits", icon: CheckSquare, end: false },
   { to: "/timer", label: "Timer", icon: Timer, end: false },
   { to: "/task-calendar", label: "Calendar", icon: Calendar, end: false },
-  { to: "/analytics", label: "Analytics", icon: ChartColumnDecreasing, end: false },
   { to: "/social", label: "Social", icon: Users, end: false },
   { to: "/achievments", label: "Awards", icon: Trophy, end: false },
   { to: "/settings", label: "Profile", icon: User, end: false },

@@ -49,33 +49,25 @@ export const createHabit = async (req, res, next) => {
       }
 
       let currentDate = startDate;
-      let createdCount = 0;
-      let skippedCount = 0;
 
       while (currentDate.isSameOrBefore(today, "day")) {
-        const dateStr = currentDate.format("YYYY-MM-DD");
-        const dayStart = currentDate.startOf("day").toDate();
-        const dayEnd = currentDate.endOf("day").toDate();
+        const habitDate = currentDate.startOf("day").toDate();
 
-        const existingHabit = await HabitCompletion.findOne({
-          user: userId,
-          habitTemplate: template._id,
-          date: {
-            $gte: dayStart,
-            $lte: dayEnd,
-          },
-        });
-
-        if (existingHabit) {
-          skippedCount++;
-        } else {
-          await HabitCompletion.create({
+        await HabitCompletion.updateOne(
+          {
             user: userId,
             habitTemplate: template._id,
-            date: currentDate.toDate(),
-          });
-          createdCount++;
-        }
+            date: habitDate,
+          },
+          {
+            $setOnInsert: {
+              user: userId,
+              habitTemplate: template._id,
+              date: habitDate,
+            },
+          },
+          { upsert: true },
+        );
 
         currentDate = currentDate.add(1, "day");
       }

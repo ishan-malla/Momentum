@@ -85,7 +85,7 @@ const HabitHeatMap = ({
             <button
               onClick={() => changeMonth(-1)}
               disabled={!canGoPrev}
-              className="flex h-7 w-9 items-center justify-center rounded-md border border-border transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+              className="flex h-7 w-9 items-center justify-center rounded-md border border-border transition-colors hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
               aria-label="Previous month"
             >
               ←
@@ -93,7 +93,7 @@ const HabitHeatMap = ({
             <button
               onClick={() => changeMonth(1)}
               disabled={!canGoNext}
-              className="flex h-7 w-9 items-center justify-center rounded-md border border-border transition-colors hover:bg-accent disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
+              className="flex h-7 w-9 items-center justify-center rounded-md border border-border transition-colors hover:bg-muted/60 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent"
               aria-label="Next month"
             >
               →
@@ -101,7 +101,7 @@ const HabitHeatMap = ({
             {!calendar.isCurrentMonth && (
               <button
                 onClick={handleTodayClick}
-                className="h-7 rounded-md border border-border px-3 text-xs font-medium transition-colors hover:bg-accent"
+                className="h-7 rounded-md border border-border px-3 text-xs font-medium transition-colors hover:bg-muted/60"
               >
                 Today
               </button>

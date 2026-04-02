@@ -1,4 +1,7 @@
 "use client";
+import { Link } from "react-router";
+import { Button } from "@/components/ui/button";
+
 export default function PomodoroHeader() {
   return (
     <header>
@@ -7,6 +10,14 @@ export default function PomodoroHeader() {
           <h1 className="font-heading text-[24px] font-semibold text-foreground sm:text-[28px]">
             Pomodoro Timer
           </h1>
+          <Button
+            asChild
+            size="sm"
+            variant="outline"
+            className="h-9 border-border/80 bg-card px-3.5 text-sm text-foreground hover:bg-muted/60"
+          >
+            <Link to="/timer/analytics">See analytics</Link>
+          </Button>
         </div>
       </div>
     </header>

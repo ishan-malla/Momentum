@@ -15,8 +15,12 @@ import {
 } from "@/features/habit/habitApiSlice";
 
 const Analytics = () => {
-  const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(() => new Date().getMonth());
+  const [selectedYear, setSelectedYear] = useState(() =>
+    new Date().getFullYear(),
+  );
+  const [selectedMonth, setSelectedMonth] = useState(() =>
+    new Date().getMonth(),
+  );
 
   const {
     data: analyticsData,
@@ -86,10 +90,6 @@ const Analytics = () => {
         <h1 className="font-heading text-[2.15rem] font-semibold tracking-[-0.03em] text-[#2f3e32]">
           Habit Analytics
         </h1>
-        <p className="max-w-2xl text-sm text-[#6e675c] sm:text-[0.95rem]">
-          A simpler view of your routine: how often you finish habits, how your
-          streaks are holding up, and where your consistency is trending.
-        </p>
       </section>
 
       {isAnalyticsError ? (
@@ -166,7 +166,9 @@ const Analytics = () => {
         ) : (
           <HabitStreakComparisonChart data={streaks} />
         )}
-        {summary ? <HabitHighlightsCard summary={summary} streaks={streaks} /> : null}
+        {summary ? (
+          <HabitHighlightsCard summary={summary} streaks={streaks} />
+        ) : null}
       </section>
     </div>
   );

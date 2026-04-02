@@ -5,12 +5,14 @@ import {
   getPomodoroData,
   updatePomodoroSettings,
 } from "../controllers/pomodoroController.js";
+import { getPomodoroAnalytics } from "../controllers/pomodoroAnalyticsController.js";
 
 const router = express.Router();
 
 router.use(protect);
 
 router.get("/pomodoro", getPomodoroData);
+router.get("/pomodoro/analytics", getPomodoroAnalytics);
 router.patch("/pomodoro/settings", updatePomodoroSettings);
 router.post("/pomodoro/session", createPomodoroSession);
 

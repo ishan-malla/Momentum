@@ -1,4 +1,8 @@
 import { apiSlice } from "@/api/apiSlice";
+import type {
+  PomodoroAnalyticsQuery,
+  PomodoroAnalyticsResponse,
+} from "@/features/pomodoro/pomodoroAnalytics";
 
 export type PomodoroSettings = {
   focusDurationMin: number;
@@ -64,6 +68,18 @@ export const pomodoroApiSlice = apiSlice.injectEndpoints({
       providesTags: ["Pomodoro"],
     }),
 
+    getPomodoroAnalytics: builder.query<
+      PomodoroAnalyticsResponse,
+      PomodoroAnalyticsQuery | undefined
+    >({
+      query: ({ days = 28 } = {}) => ({
+        url: "/pomodoro/analytics",
+        method: "GET",
+        params: { days },
+      }),
+      providesTags: ["Pomodoro"],
+    }),
+
     updatePomodoroSettings: builder.mutation<
       UpdatePomodoroSettingsResponse,
       UpdatePomodoroSettingsRequest
@@ -92,6 +108,7 @@ export const pomodoroApiSlice = apiSlice.injectEndpoints({
 
 export const {
   useGetPomodoroDashboardQuery,
+  useGetPomodoroAnalyticsQuery,
   useUpdatePomodoroSettingsMutation,
   useCreatePomodoroSessionMutation,
 } = pomodoroApiSlice;

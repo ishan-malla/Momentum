@@ -36,6 +36,11 @@ const taskSchema = new mongoose.Schema(
     completedAt: {
       type: Date,
     },
+    completionHistory: {
+      type: Map,
+      of: String,
+      default: {},
+    },
     reminder: {
       type: Boolean,
       default: true,

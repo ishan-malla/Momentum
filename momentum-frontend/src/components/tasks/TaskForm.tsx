@@ -15,6 +15,7 @@ type Props = {
   onSubmit: (values: TaskFormValues) => void | Promise<void>;
   onCancel?: () => void;
   isSubmitting?: boolean;
+  disallowPastDateTime?: boolean;
 };
 
 const DEFAULT_VALUES: TaskFormValues = {
@@ -22,7 +23,6 @@ const DEFAULT_VALUES: TaskFormValues = {
   description: "",
   priority: "medium",
   frequency: "daily",
-  completed: false,
   reminder: true,
   reminderOffsetDays: 0,
   scheduledDate: "",
@@ -35,6 +35,30 @@ const FREQUENCY_OPTIONS: TaskFrequency[] = ["daily", "weekly", "monthly"];
 const inputClass =
   "h-10 w-full rounded-md border border-input bg-background px-3 text-sm outline-none transition-[color,box-shadow] hover:bg-muted/35 focus:border-primary/60 focus:ring-[3px] focus:ring-primary/20";
 
+const formatDateInputValue = (date: Date) => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+const formatTimeInputValue = (date: Date) => {
+  const hours = `${date.getHours()}`.padStart(2, "0");
+  const minutes = `${date.getMinutes()}`.padStart(2, "0");
+
+  return `${hours}:${minutes}`;
+};
+
+const parseScheduledDateTime = (scheduledDate: string, scheduledTime: string) => {
+  if (!scheduledDate || !scheduledTime) return null;
+
+  const parsed = new Date(`${scheduledDate}T${scheduledTime}`);
+  if (Number.isNaN(parsed.getTime())) return null;
+
+  return parsed;
+};
+
 export default function TaskForm({
   title,
   initialValues = DEFAULT_VALUES,
@@ -42,16 +66,45 @@ export default function TaskForm({
   onSubmit,
   onCancel,
   isSubmitting = false,
+  disallowPastDateTime = false,
 }: Props) {
   const [values, setValues] = useState<TaskFormValues>(initialValues);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
   const idPrefix = title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
   const trimmedName = values.name.trim();
   const isNameTooShort = trimmedName.length > 0 && trimmedName.length < 3;
-  const isSubmitDisabled = isSubmitting || isNameTooShort;
+  const minScheduledDate = disallowPastDateTime
+    ? formatDateInputValue(currentTime)
+    : undefined;
+  const minScheduledTime =
+    disallowPastDateTime && values.scheduledDate === minScheduledDate
+      ? formatTimeInputValue(currentTime)
+      : undefined;
+  const scheduledDateTime = parseScheduledDateTime(
+    values.scheduledDate,
+    values.scheduledTime,
+  );
+  const isScheduledInPast =
+    disallowPastDateTime &&
+    scheduledDateTime !== null &&
+    scheduledDateTime.getTime() < currentTime.getTime();
+  const isSubmitDisabled = isSubmitting || isNameTooShort || isScheduledInPast;
 
   useEffect(() => {
     setValues(initialValues);
   }, [initialValues]);
+
+  useEffect(() => {
+    if (!disallowPastDateTime) return;
+
+    const intervalId = window.setInterval(() => {
+      setCurrentTime(new Date());
+    }, 30000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [disallowPastDateTime]);
 
   const updateValue = <K extends keyof TaskFormValues>(
     key: K,
@@ -130,6 +183,8 @@ export default function TaskForm({
               onChange={(event) => updateValue("scheduledDate", event.target.value)}
               className={inputClass}
               required
+              min={minScheduledDate}
+              aria-invalid={isScheduledInPast}
             />
           </div>
 
@@ -144,7 +199,14 @@ export default function TaskForm({
               onChange={(event) => updateValue("scheduledTime", event.target.value)}
               className={inputClass}
               required
+              min={minScheduledTime}
+              aria-invalid={isScheduledInPast}
             />
+            {isScheduledInPast && (
+              <p className="text-[11px] text-destructive">
+                Pick a future date and time for a new task.
+              </p>
+            )}
           </div>
 
           <div className="space-y-1.5">

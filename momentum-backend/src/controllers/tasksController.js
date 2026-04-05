@@ -1,6 +1,13 @@
 import Task from "../models/taskSchema.js";
 import { applyXpChange, getTaskBaseXp } from "../services/gamificationService.js";
 import { toUserProgress } from "../utils/userResponse.js";
+import {
+  doesTaskOccurOnDate,
+  getOccurrenceCompletion,
+  getOccurrenceKeyForDate,
+  isOccurrenceCompletionAllowed,
+  summarizeTaskCompletion,
+} from "../utils/taskRecurrence.js";
 
 const validateFrequency = (value) =>
   !value || ["daily", "weekly", "monthly"].includes(value);
@@ -14,42 +21,16 @@ const normalizeReminderOffset = (frequency, reminderOffsetDays) => {
   return Math.min(parsed, cap);
 };
 
-const parseDateParts = (value) => {
-  if (!value) return null;
-  const [year, month, day] = value.split("-").map(Number);
-  if (!year || !month || !day) return null;
-  return { year, month: month - 1, day };
-};
+const toTaskResponse = (taskDocument) => {
+  const task = taskDocument.toObject ? taskDocument.toObject() : taskDocument;
+  const summary = summarizeTaskCompletion(task);
 
-const isCompletionAllowed = (task, now = new Date()) => {
-  const parts = parseDateParts(task.scheduledDate);
-  if (!parts) return false;
-
-  const taskDate = new Date(parts.year, parts.month, parts.day);
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-  if (task.frequency === "daily") {
-    return (
-      taskDate.getFullYear() === today.getFullYear() &&
-      taskDate.getMonth() === today.getMonth() &&
-      taskDate.getDate() === today.getDate()
-    );
-  }
-
-  if (task.frequency === "weekly") {
-    const weekStart = new Date(taskDate);
-    weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-    weekStart.setHours(0, 0, 0, 0);
-    const weekEnd = new Date(weekStart);
-    weekEnd.setDate(weekEnd.getDate() + 6);
-    weekEnd.setHours(23, 59, 59, 999);
-    return today >= weekStart && today <= weekEnd;
-  }
-
-  return (
-    taskDate.getFullYear() === today.getFullYear() &&
-    taskDate.getMonth() === today.getMonth()
-  );
+  return {
+    ...task,
+    completed: summary.completed,
+    completedAt: summary.completedAt,
+    completionHistory: summary.completionHistory,
+  };
 };
 
 export const createTask = async (req, res) => {
@@ -85,11 +66,21 @@ export const createTask = async (req, res) => {
         .status(400)
         .json({ message: "Frequency must be daily, weekly, or monthly" });
     }
+    const effectiveFrequency = frequency ?? "daily";
 
     const normalizedReminderOffset = normalizeReminderOffset(
-      frequency,
+      effectiveFrequency,
       reminderOffsetDays,
     );
+
+    const completionHistory = {};
+    if (
+      completed &&
+      doesTaskOccurOnDate({ scheduledDate, frequency: effectiveFrequency }, scheduledDate)
+    ) {
+      const occurrenceKey = getOccurrenceKeyForDate(effectiveFrequency, scheduledDate);
+      completionHistory[occurrenceKey] = new Date().toISOString();
+    }
 
     const task = await Task.create({
       user: userId,
@@ -100,12 +91,13 @@ export const createTask = async (req, res) => {
       description,
       reminder,
       reminderOffsetDays: normalizedReminderOffset,
-      frequency,
+      frequency: effectiveFrequency,
       completed: Boolean(completed),
       completedAt: completed ? new Date() : undefined,
+      completionHistory,
     });
 
-    res.status(201).json(task);
+    res.status(201).json(toTaskResponse(task));
   } catch (error) {
     if (error?.name === "ValidationError") {
       return res.status(400).json({
@@ -139,7 +131,7 @@ export const getTasks = async (req, res) => {
       createdAt: 1,
     });
 
-    res.status(200).json({ tasks });
+    res.status(200).json({ tasks: tasks.map(toTaskResponse) });
   } catch (error) {
     res.status(500).json({ message: "Failed to fetch tasks", error: error.message });
   }
@@ -161,6 +153,7 @@ export const updateTask = async (req, res) => {
       reminderOffsetDays,
       frequency,
       completed,
+      occurrenceDate,
     } = req.body;
 
     if (!validateFrequency(frequency)) {
@@ -171,7 +164,11 @@ export const updateTask = async (req, res) => {
 
     const task = await Task.findOne({ _id: id, user: userId });
     if (!task) return res.status(404).json({ message: "Task not found" });
-    const previousCompleted = Boolean(task.completed);
+    const previousScheduleSignature = `${task.frequency}:${task.scheduledDate}`;
+    const completionHistory = new Map(Object.entries(summarizeTaskCompletion(task).completionHistory));
+    let completionChanged = false;
+    let xpDirection = 0;
+    let completionOccurredAt = null;
 
     if (name !== undefined) task.name = name;
     if (scheduledDate !== undefined) task.scheduledDate = scheduledDate;
@@ -188,15 +185,53 @@ export const updateTask = async (req, res) => {
     if (frequency !== undefined) task.frequency = frequency;
 
     if (completed !== undefined) {
+      if (!occurrenceDate) {
+        return res
+          .status(400)
+          .json({ message: "Occurrence date is required when updating completion" });
+      }
+      if (!doesTaskOccurOnDate(task, occurrenceDate)) {
+        return res
+          .status(400)
+          .json({ message: "Task does not occur on the selected date" });
+      }
       const nextCompleted = Boolean(completed);
-      if (nextCompleted && !isCompletionAllowed(task)) {
+      if (nextCompleted && !isOccurrenceCompletionAllowed(task, occurrenceDate)) {
         return res
           .status(400)
           .json({ message: "Task can only be completed during its scheduled window" });
       }
-      task.completed = nextCompleted;
-      task.completedAt = nextCompleted ? new Date() : undefined;
+      const currentCompletion = getOccurrenceCompletion(task, occurrenceDate);
+      if (currentCompletion.completed !== nextCompleted) {
+        completionChanged = true;
+        xpDirection = nextCompleted ? 1 : -1;
+        completionOccurredAt = nextCompleted
+          ? new Date().toISOString()
+          : currentCompletion.completedAt ?? new Date().toISOString();
+      }
+
+      if (nextCompleted) {
+        completionHistory.set(
+          currentCompletion.occurrenceKey,
+          completionOccurredAt ?? new Date().toISOString(),
+        );
+      } else {
+        completionHistory.delete(currentCompletion.occurrenceKey);
+      }
     }
+
+    const nextScheduleSignature = `${task.frequency}:${task.scheduledDate}`;
+    if (previousScheduleSignature !== nextScheduleSignature && completed === undefined) {
+      completionHistory.clear();
+      task.completed = false;
+      task.completedAt = undefined;
+    }
+    task.completionHistory = completionHistory;
+    const completionSummary = summarizeTaskCompletion(task);
+    task.completed = completionSummary.completed;
+    task.completedAt = completionSummary.completedAt
+      ? new Date(completionSummary.completedAt)
+      : undefined;
 
     if (
       scheduledDate !== undefined ||
@@ -209,8 +244,6 @@ export const updateTask = async (req, res) => {
     }
 
     await task.save();
-    const nextCompleted = Boolean(task.completed);
-    const completionChanged = previousCompleted !== nextCompleted;
 
     const gamificationResult = completionChanged
       ? await applyXpChange({
@@ -218,8 +251,8 @@ export const updateTask = async (req, res) => {
           sourceType: "task",
           sourceId: task._id,
           baseXp: getTaskBaseXp(task.priority),
-          direction: nextCompleted ? 1 : -1,
-          occurredAt: task.completedAt ?? new Date(),
+          direction: xpDirection,
+          occurredAt: completionOccurredAt ? new Date(completionOccurredAt) : new Date(),
         })
       : {
           xpChange: 0,
@@ -230,7 +263,7 @@ export const updateTask = async (req, res) => {
 
     res.status(200).json({
       message: "Task updated",
-      task,
+      task: toTaskResponse(task),
       xpChange: gamificationResult.xpChange,
       userProgress: gamificationResult.userProgress,
       levelUpOccurred: gamificationResult.levelUpOccurred,

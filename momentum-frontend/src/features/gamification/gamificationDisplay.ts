@@ -1,6 +1,11 @@
 export const HABIT_BASE_XP = 10;
 export const FIXED_FOCUS_XP = 10;
 export const MIN_FOCUS_XP_MINUTES = 5;
+export const TASK_PRIORITY_XP = {
+  low: 5,
+  medium: 10,
+  high: 15,
+} as const;
 
 export const getHabitStreakMultiplier = (streak: number) => {
   if (streak >= 30) return 2;

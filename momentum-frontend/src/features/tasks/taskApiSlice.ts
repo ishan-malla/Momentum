@@ -1,7 +1,12 @@
 import { apiSlice } from "@/api/apiSlice";
 import { syncGamificationMutation } from "@/features/gamification/gamificationMutationSync";
 import type { GamificationMutationPayload } from "@/features/gamification/gamificationTypes";
-import type { Task, TaskFrequency, TaskPayload } from "@/features/tasks/taskTypes";
+import type {
+  Task,
+  TaskCompletionHistory,
+  TaskFrequency,
+  TaskPayload,
+} from "@/features/tasks/taskTypes";
 
 type TaskApiResponse = {
   _id: string;
@@ -11,6 +16,7 @@ type TaskApiResponse = {
   frequency: TaskFrequency;
   completed: boolean;
   completedAt?: string;
+  completionHistory?: TaskCompletionHistory;
   reminder: boolean;
   reminderOffsetDays?: number;
   scheduledDate: string;
@@ -27,6 +33,7 @@ const normalizeTask = (task: TaskApiResponse): Task => ({
   frequency: task.frequency,
   completed: Boolean(task.completed),
   completedAt: task.completedAt,
+  completionHistory: task.completionHistory ?? {},
   reminder: Boolean(task.reminder),
   reminderOffsetDays: task.reminderOffsetDays ?? 0,
   scheduledDate: task.scheduledDate,
@@ -34,6 +41,11 @@ const normalizeTask = (task: TaskApiResponse): Task => ({
   createdAt: task.createdAt,
   updatedAt: task.updatedAt,
 });
+
+type TaskUpdatePatch = Partial<TaskPayload> & {
+  completed?: boolean;
+  occurrenceDate?: string;
+};
 
 type TaskUpdateResponse = GamificationMutationPayload & {
   message: string;
@@ -71,7 +83,7 @@ export const taskApiSlice = apiSlice.injectEndpoints({
     }),
     updateTask: builder.mutation<
       { message: string; task: Task } & GamificationMutationPayload,
-      { id: string; patch: Partial<TaskPayload> }
+      { id: string; patch: TaskUpdatePatch }
     >({
       query: ({ id, patch }) => ({
         url: `/tasks/${id}`,

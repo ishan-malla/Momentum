@@ -35,7 +35,7 @@ const ActivityFeedCard = ({ items }: ActivityFeedCardProps) => {
             Recent Activity
           </h2>
           <p className="text-sm text-[#7b7467]">
-            Bite-sized updates from the people you follow.
+            Meaningful wins and consistent progress from your friends.
           </p>
         </div>
 

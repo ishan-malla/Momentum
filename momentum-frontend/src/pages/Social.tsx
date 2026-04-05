@@ -7,12 +7,13 @@ import type { SocialProfileSummary } from "@/components/social/socialTypes";
 import SocialHeaderActions from "@/components/social/SocialHeaderActions";
 import {
   useGetFriendsOverviewQuery,
+  useGetSocialDashboardQuery,
   useRemoveFriendMutation,
   useRespondToFriendRequestMutation,
   useSendFriendRequestMutation,
 } from "@/features/friends/friendsApiSlice";
 import { selectCurrentUser } from "@/features/auth/authSlice";
-import { mockFeedItems, mockLeaderboard, type SocialMetric } from "@/data/mockSocial";
+import { type SocialMetric } from "@/data/mockSocial";
 import { formatDisplayName } from "@/utils/greeting";
 import { useSelector } from "react-redux";
 import { toast } from "sonner";
@@ -23,6 +24,7 @@ const Social = () => {
   const [selectedMetric, setSelectedMetric] = useState<SocialMetric>("xp");
   const [selectedProfile, setSelectedProfile] = useState<SocialProfileSummary | null>(null);
   const { data, refetch } = useGetFriendsOverviewQuery();
+  const { data: socialData } = useGetSocialDashboardQuery();
   const [sendFriendRequest] = useSendFriendRequestMutation();
   const [removeFriend, { isLoading: isRemovingFriend }] = useRemoveFriendMutation();
   const [respondToFriendRequest] = useRespondToFriendRequestMutation();
@@ -32,16 +34,31 @@ const Social = () => {
   const currentUsername = formatDisplayName(user?.username, "You");
   const leaderboardEntries = useMemo(
     () =>
-      mockLeaderboard.map((entry) =>
+      (socialData?.leaderboard ?? []).map((entry) =>
         entry.isCurrentUser
           ? {
               ...entry,
               username: currentUsername,
+              bio: user?.bio || entry.bio,
               avatarUrl: user?.avatarUrl || entry.avatarUrl,
+              canUnfriend: false,
             }
-          : entry,
+          : { ...entry, canUnfriend: true },
       ),
-    [currentUsername, user?.avatarUrl],
+    [currentUsername, socialData?.leaderboard, user?.avatarUrl],
+  );
+  const activityFeedItems = useMemo(
+    () =>
+      (socialData?.activityFeed ?? []).map((item) =>
+        item.username === user?.username
+          ? {
+              ...item,
+              username: currentUsername,
+              avatarUrl: user?.avatarUrl || item.avatarUrl,
+            }
+          : item,
+      ),
+    [currentUsername, socialData?.activityFeed, user?.avatarUrl, user?.username],
   );
 
   const getErrorMessage = (error: unknown, fallback: string) => {
@@ -143,7 +160,7 @@ const Social = () => {
             onMetricChange={setSelectedMetric}
             onSelectFriend={setSelectedProfile}
           />
-          <ActivityFeedCard items={mockFeedItems} />
+          <ActivityFeedCard items={activityFeedItems} />
         </div>
 
         <FriendsComparisonChart

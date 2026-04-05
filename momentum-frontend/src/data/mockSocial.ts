@@ -3,6 +3,7 @@ export type SocialMetric = "xp" | "level" | "streak";
 export type FriendSummary = {
   id: string;
   username: string;
+  bio?: string;
   avatarUrl?: string;
   level: number;
   totalXp: number;
@@ -12,6 +13,7 @@ export type FriendSummary = {
 export type PendingRequest = {
   id: string;
   username: string;
+  bio?: string;
   avatarUrl?: string;
   level: number;
   totalXp: number;
@@ -21,6 +23,7 @@ export type PendingRequest = {
 export type LeaderboardEntry = {
   id: string;
   username: string;
+  bio?: string;
   avatarUrl?: string;
   weeklyXp: number;
   level: number;

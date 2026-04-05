@@ -3,7 +3,7 @@ import SocialAvatar from "@/components/social/SocialAvatar";
 import type { SocialProfileSummary } from "@/components/social/socialTypes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Flame, Sparkles, Trophy, X } from "lucide-react";
+import { AlertTriangle, Flame, Sparkles, Trophy, X } from "lucide-react";
 
 type FriendProfileModalProps = {
   open: boolean;
@@ -35,7 +35,6 @@ const FriendProfileModal = ({
 
         if (showUnfriendConfirm) {
           setShowUnfriendConfirm(false);
-          return;
         }
 
         onClose();
@@ -99,7 +98,7 @@ const FriendProfileModal = ({
       >
         <div className="border-b border-[#e7dfd2] bg-[#fffdfa] px-5 py-5">
           <div className="flex items-start justify-between gap-4">
-            <div className="flex items-center gap-4">
+            <div className="flex items-start gap-4">
               <button
                 type="button"
                 onClick={() => setIsAvatarOpen(true)}
@@ -113,31 +112,35 @@ const FriendProfileModal = ({
                   textClassName="text-base"
                 />
               </button>
-              <div>
-                <p className="font-secondary text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8a826f]">
-                  {profile.isCurrentUser ? "Your Profile" : "Friend Profile"}
-                </p>
-                <h3 className="mt-1 font-heading text-[1.75rem] font-semibold leading-none text-[#2f3e32]">
-                  {profile.username}
-                </h3>
-                <p className="mt-2 max-w-sm text-sm text-[#6f675a]">
-                  A quick snapshot of momentum, streaks, and progress right now.
-                </p>
+              <div className="space-y-3">
+                <div>
+                  <p className="font-secondary text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8a826f]">
+                    {profile.isCurrentUser ? "Your Profile" : "Friend Profile"}
+                  </p>
+                  <h3 className="mt-1 font-heading text-[1.75rem] font-semibold leading-none text-[#2f3e32]">
+                    {profile.username}
+                  </h3>
+                  <p className="mt-2 max-w-sm text-sm leading-6 text-[#6f675a]">
+                    {profile.bio?.trim() || "No bio added yet."}
+                  </p>
+                </div>
+
+                {profile.canUnfriend ? (
+                  <div className="flex items-center">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowUnfriendConfirm((current) => !current)}
+                      className="h-9 rounded-xl border-[#e4cabc] bg-[#fffdfa] px-3.5 text-sm text-[#9b6247] hover:bg-[#fff1ea]"
+                    >
+                      Unfriend
+                    </Button>
+                  </div>
+                ) : null}
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
-              {profile.canUnfriend ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setShowUnfriendConfirm((current) => !current)}
-                  className="h-9 rounded-xl border-[#e4cabc] bg-[#fffdfa] px-3.5 text-sm text-[#9b6247] hover:bg-[#fff1ea]"
-                >
-                  Unfriend
-                </Button>
-              ) : null}
-
+            <div className="flex items-center">
               <Button
                 type="button"
                 variant="ghost"
@@ -153,40 +156,6 @@ const FriendProfileModal = ({
         </div>
 
         <CardContent className="space-y-5 px-5 py-5">
-          {profile.canUnfriend && showUnfriendConfirm ? (
-            <div className="rounded-[1rem] border border-[#ead7cd] bg-[#fff8f4] px-4 py-4">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-[11px] font-secondary uppercase tracking-[0.14em] text-[#a56f55]">
-                    Confirm Unfriend
-                  </p>
-                  <p className="mt-1 text-sm text-[#6f675a]">
-                    Remove {profile.username} from your friends list?
-                  </p>
-                </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowUnfriendConfirm(false)}
-                    className="h-9 rounded-xl border-[#ddd6c8] bg-[#fffdfa] px-3.5 text-sm text-[#7b7467] hover:bg-[#f6f1e8]"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="button"
-                    onClick={() => onUnfriend?.(profile.id)}
-                    disabled={isRemovingFriend}
-                    className="h-9 rounded-xl bg-[#b96d4c] px-3.5 text-sm text-white hover:bg-[#a45d3e]"
-                  >
-                    {isRemovingFriend ? "Removing..." : "Confirm"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ) : null}
-
           <div className="grid gap-3 sm:grid-cols-2">
             {statCards.map(({ label, value, tone, icon: Icon }) => (
               <div
@@ -222,6 +191,68 @@ const FriendProfileModal = ({
           </div>
         </CardContent>
       </Card>
+
+      {showUnfriendConfirm ? (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 backdrop-blur-[2px]"
+          onClick={() => setShowUnfriendConfirm(false)}
+        >
+          <Card
+            className="w-full max-w-md overflow-hidden rounded-[1.2rem] border border-[#ddd6c8] bg-[#fffdfa] p-0 shadow-[0_20px_50px_rgba(57,52,43,0.18)]"
+            onClick={(event) => event.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Confirm unfriend"
+          >
+            <div className="flex items-start justify-between gap-4 px-6 py-5">
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 rounded-md bg-[#fff1ea] p-1.5 text-[#b96d4c]">
+                  <AlertTriangle className="h-4 w-4" />
+                </div>
+                <div>
+                  <h3 className="font-heading text-lg font-semibold text-[#2f3e32]">
+                    Remove Friend
+                  </h3>
+                  <p className="mt-1 text-sm text-[#6f675a]">
+                    This will remove <span className="font-semibold">{profile.username}</span>{" "}
+                    from your friends list.
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setShowUnfriendConfirm(false)}
+                className="h-9 w-9 rounded-full text-[#7b7467] hover:bg-[#f6f1e8] hover:text-[#2f3e32]"
+                aria-label="Close unfriend confirmation"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 px-6 py-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowUnfriendConfirm(false)}
+                className="border-[#ddd6c8] bg-[#fffdfa] text-[#7b7467] hover:bg-[#f6f1e8]"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                onClick={() => onUnfriend?.(profile.id)}
+                disabled={isRemovingFriend}
+                className="bg-[#b96d4c] text-white hover:bg-[#a45d3e]"
+              >
+                {isRemovingFriend ? "Removing..." : "Remove Friend"}
+              </Button>
+            </div>
+          </Card>
+        </div>
+      ) : null}
 
       {isAvatarOpen ? (
         <div

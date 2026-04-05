@@ -141,7 +141,7 @@ const Analytics = () => {
               </p>
             </div>
             {isHeatMapLoading && !heatMapData ? (
-              <Skeleton className="h-[360px] rounded-[1rem]" />
+              <Skeleton className="h-[360px] rounded-2xl" />
             ) : (
               <HabitHeatMapCompact
                 year={heatMapData?.year ?? selectedYear}

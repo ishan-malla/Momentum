@@ -45,6 +45,7 @@ const buildStreakMap = async (userIds) => {
 const toFriendSummary = (user, streakMap) => ({
   id: String(user._id),
   username: user.username,
+  bio: user.bio || "",
   avatarUrl: user.avatarUrl || "",
   level: toLevel(user.totalXp),
   totalXp: user.totalXp ?? 0,
@@ -54,10 +55,22 @@ const toFriendSummary = (user, streakMap) => ({
 const toPendingRequestSummary = (friendship, streakMap) => ({
   id: String(friendship._id),
   username: friendship.requester.username,
+  bio: friendship.requester.bio || "",
   avatarUrl: friendship.requester.avatarUrl || "",
   level: toLevel(friendship.requester.totalXp),
   totalXp: friendship.requester.totalXp ?? 0,
   streakCount: streakMap.get(String(friendship.requester._id)) ?? 0,
+});
+
+const toLookupSummary = (user, streakMap, relationStatus) => ({
+  id: String(user._id),
+  username: user.username,
+  bio: user.bio || "",
+  avatarUrl: user.avatarUrl || "",
+  level: toLevel(user.totalXp),
+  totalXp: user.totalXp ?? 0,
+  streakCount: streakMap.get(String(user._id)) ?? 0,
+  relationStatus,
 });
 
 export const getFriendsOverview = async (req, res) => {
@@ -69,14 +82,14 @@ export const getFriendsOverview = async (req, res) => {
         status: "accepted",
         $or: [{ requester: userId }, { recipient: userId }],
       })
-        .populate("requester", "username avatarUrl totalXp")
-        .populate("recipient", "username avatarUrl totalXp")
+        .populate("requester", "username bio avatarUrl totalXp")
+        .populate("recipient", "username bio avatarUrl totalXp")
         .lean(),
       Friendship.find({
         status: "pending",
         recipient: userId,
       })
-        .populate("requester", "username avatarUrl totalXp")
+        .populate("requester", "username bio avatarUrl totalXp")
         .sort({ createdAt: -1 })
         .lean(),
     ]);
@@ -161,6 +174,55 @@ export const sendFriendRequest = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: "Failed to send friend request",
+      error: error.message,
+    });
+  }
+};
+
+export const lookupFriendByCode = async (req, res) => {
+  try {
+    const friendCode = normalizeFriendCode(req.params.friendCode);
+
+    if (!isValidFriendCode(friendCode)) {
+      return res.status(400).json({ message: "Use a valid friend code like #A3F9KL" });
+    }
+
+    const user = await User.findOne({ friendCode }).select(
+      "_id username bio avatarUrl totalXp friendCode",
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "No user was found with that friend code" });
+    }
+
+    const currentUserId = String(req.user._id);
+    const targetUserId = String(user._id);
+    let relationStatus = "available";
+
+    if (targetUserId === currentUserId) {
+      relationStatus = "self";
+    } else {
+      const pairKey = buildFriendshipPairKey(currentUserId, targetUserId);
+      const friendship = await Friendship.findOne({ pairKey }).lean();
+
+      if (friendship?.status === "accepted") {
+        relationStatus = "friends";
+      } else if (friendship?.status === "pending") {
+        relationStatus =
+          String(friendship.requester) === currentUserId
+            ? "pending_outgoing"
+            : "pending_incoming";
+      }
+    }
+
+    const streakMap = await buildStreakMap([user._id]);
+
+    return res.status(200).json({
+      profile: toLookupSummary(user, streakMap, relationStatus),
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to look up friend code",
       error: error.message,
     });
   }

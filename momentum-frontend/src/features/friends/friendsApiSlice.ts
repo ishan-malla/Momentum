@@ -1,8 +1,10 @@
 import { apiSlice } from "@/api/apiSlice";
+import type { FeedItem, LeaderboardEntry } from "@/data/mockSocial";
 
 export type FriendSummary = {
   id: string;
   username: string;
+  bio?: string;
   avatarUrl?: string;
   level: number;
   totalXp: number;
@@ -12,6 +14,7 @@ export type FriendSummary = {
 export type PendingRequest = {
   id: string;
   username: string;
+  bio?: string;
   avatarUrl?: string;
   level: number;
   totalXp: number;
@@ -22,6 +25,31 @@ export type FriendsOverview = {
   friendCode: string;
   friends: FriendSummary[];
   pendingRequests: PendingRequest[];
+};
+
+export type SocialDashboard = {
+  leaderboard: LeaderboardEntry[];
+  activityFeed: FeedItem[];
+};
+
+export type FriendLookupProfile = {
+  id: string;
+  username: string;
+  bio?: string;
+  avatarUrl?: string;
+  level: number;
+  totalXp: number;
+  streakCount: number;
+  relationStatus:
+    | "available"
+    | "self"
+    | "friends"
+    | "pending_outgoing"
+    | "pending_incoming";
+};
+
+export type FriendLookupResponse = {
+  profile: FriendLookupProfile;
 };
 
 type FriendMessageResponse = {
@@ -36,6 +64,19 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
         method: "GET",
       }),
       providesTags: ["Friends"],
+    }),
+    getSocialDashboard: builder.query<SocialDashboard, void>({
+      query: () => ({
+        url: "/friends/dashboard",
+        method: "GET",
+      }),
+      providesTags: ["Friends"],
+    }),
+    lookupFriendByCode: builder.query<FriendLookupResponse, string>({
+      query: (friendCode) => ({
+        url: `/friends/lookup/${encodeURIComponent(friendCode)}`,
+        method: "GET",
+      }),
     }),
     sendFriendRequest: builder.mutation<FriendMessageResponse, { friendCode: string }>({
       query: (body) => ({
@@ -68,6 +109,8 @@ export const friendsApiSlice = apiSlice.injectEndpoints({
 
 export const {
   useGetFriendsOverviewQuery,
+  useGetSocialDashboardQuery,
+  useLazyLookupFriendByCodeQuery,
   useRemoveFriendMutation,
   useRespondToFriendRequestMutation,
   useSendFriendRequestMutation,

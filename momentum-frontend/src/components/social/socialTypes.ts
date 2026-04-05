@@ -1,6 +1,7 @@
 export type SocialProfileSummary = {
   id: string;
   username: string;
+  bio?: string;
   avatarUrl?: string;
   level: number;
   totalXp: number;

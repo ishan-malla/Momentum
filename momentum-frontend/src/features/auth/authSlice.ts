@@ -1,7 +1,8 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { UserProgress } from "@/features/gamification/gamificationTypes";
 import type { RootState } from "@/store/store";
 
-export type User = {
+export type User = UserProgress & {
   id: string;
   username: string;
   bio?: string;
@@ -11,6 +12,7 @@ export type User = {
   role: "user" | "admin";
   isVerified: boolean;
 };
+
 export type AuthState = {
   user: User | null;
   token: string | null;
@@ -26,6 +28,13 @@ const authSlice = createSlice({
       state.user = user;
       state.token = token;
     },
+    updateCurrentUser: (state, action: PayloadAction<Partial<User>>) => {
+      if (!state.user) return;
+      state.user = {
+        ...state.user,
+        ...action.payload,
+      };
+    },
 
     logOut: (state) => {
       state.user = null;
@@ -34,7 +43,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logOut } = authSlice.actions;
+export const { setCredentials, updateCurrentUser, logOut } = authSlice.actions;
 
 export default authSlice.reducer;
 export const selectCurrentUser = (state: RootState) => state.auth.user;

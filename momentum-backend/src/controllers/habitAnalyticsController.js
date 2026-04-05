@@ -2,13 +2,12 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
 import { HabitCompletion, HabitTemplate } from "../models/habitSchema.js";
+import { toUserProgress } from "../utils/userResponse.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const APP_TIMEZONE = "Asia/Kathmandu";
-const LEVEL_GOAL = 100;
-
 const clampDays = (value) => {
   const parsed = Number.parseInt(value ?? "14", 10);
   if (Number.isNaN(parsed)) return 14;
@@ -45,7 +44,7 @@ const buildBestStreakMap = (docs) => {
 export const getHabitAnalytics = async (req, res) => {
   try {
     const userId = req.user.id;
-    const totalXp = req.user.totalXp ?? 0;
+    const progress = toUserProgress(req.user);
     const days = clampDays(req.query.days);
     const now = dayjs().tz(APP_TIMEZONE);
     const rangeStart = now.startOf("day").subtract(days - 1, "day");
@@ -123,10 +122,10 @@ export const getHabitAnalytics = async (req, res) => {
         completionRateToday: toPercent(todayStats.completed, todayStats.total),
         recentCompletionRate: toPercent(recentCompleted, recentCompletions.length),
         bestCurrentStreak,
-        totalXp,
-        level: Math.floor(totalXp / LEVEL_GOAL) + 1,
-        levelProgress: totalXp % LEVEL_GOAL,
-        levelGoal: LEVEL_GOAL,
+        totalXp: progress.totalXp,
+        level: progress.level,
+        levelProgress: progress.xp,
+        levelGoal: progress.levelGoal,
       },
       completionTrend: dayKeys.map((dayKey) => {
         const stats = dailyStats.get(dayKey) ?? { completed: 0, total: 0 };

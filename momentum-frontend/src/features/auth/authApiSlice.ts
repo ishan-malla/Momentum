@@ -53,6 +53,15 @@ export type ProfileResponse = {
   profile: User;
 };
 
+export type ProfileStatsResponse = {
+  progress: Pick<User, "level" | "xp" | "totalXp" | "levelGoal">;
+  periods: {
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+  };
+};
+
 export type UpdateProfileRequest = {
   username?: string;
   bio?: string;
@@ -143,6 +152,14 @@ export const authApiSlice = apiSlice.injectEndpoints({
         url: "/profile",
         method: "GET",
       }),
+      providesTags: ["Profile"],
+    }),
+    getProfileStats: builder.query<ProfileStatsResponse, void>({
+      query: () => ({
+        url: "/profile/stats",
+        method: "GET",
+      }),
+      providesTags: ["Profile"],
     }),
     updateProfile: builder.mutation<
       { message: string; profile: User },
@@ -163,6 +180,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
           // no-op
         }
       },
+      invalidatesTags: ["Profile"],
     }),
     logout: builder.mutation<{ message: string }, void>({
       query: () => ({
@@ -191,5 +209,6 @@ export const {
   useVerifyResetOTPMutation,
   useResetPasswordMutation,
   useGetProfileQuery,
+  useGetProfileStatsQuery,
   useUpdateProfileMutation,
 } = authApiSlice;

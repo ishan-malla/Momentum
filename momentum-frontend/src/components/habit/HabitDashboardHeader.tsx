@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Link } from "react-router";
@@ -9,6 +10,7 @@ type Props = {
   bestStreak: number;
   onAddHabit: () => void;
   analyticsPath: string;
+  xpActivityControl?: ReactNode;
 };
 
 const getHabitCountText = (totalHabits: number) => {
@@ -22,10 +24,15 @@ export default function HabitDashboardHeader({
   totalHabits,
   onAddHabit,
   analyticsPath,
+  xpActivityControl,
 }: Props) {
   return (
     <section className="py-1">
       <div className="min-w-0">
+        {xpActivityControl ? (
+          <div className="mb-2 flex justify-end">{xpActivityControl}</div>
+        ) : null}
+
         <h1 className="font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
           {greeting}, {username}
         </h1>
@@ -36,11 +43,6 @@ export default function HabitDashboardHeader({
           </p>
 
           <div className="flex shrink-0 items-center gap-2.5 self-end sm:self-auto">
-            {/* <div className="inline-flex h-9 items-center gap-1.5 rounded-md border border-border bg-secondary px-3 text-sm font-secondary text-foreground">
-              <Flame className="h-4 w-4 text-streak" />
-              <span className="font-medium">{bestStreak}-day streak</span>
-            </div> */}
-
             <Button
               asChild
               size="sm"

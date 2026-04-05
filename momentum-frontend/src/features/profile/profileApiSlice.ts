@@ -34,6 +34,7 @@ export const profileApiSlice = apiSlice.injectEndpoints({
       async onQueryStarted(_arg, { dispatch, getState, queryFulfilled }) {
         await syncProfileInAuthStore(dispatch, getState, queryFulfilled);
       },
+      invalidatesTags: ["Profile"],
     }),
     removeAvatar: builder.mutation<ProfileMutationResponse, void>({
       query: () => ({
@@ -43,6 +44,7 @@ export const profileApiSlice = apiSlice.injectEndpoints({
       async onQueryStarted(_arg, { dispatch, getState, queryFulfilled }) {
         await syncProfileInAuthStore(dispatch, getState, queryFulfilled);
       },
+      invalidatesTags: ["Profile"],
     }),
   }),
 });

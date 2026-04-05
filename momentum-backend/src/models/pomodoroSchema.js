@@ -35,12 +35,6 @@ const pomodoroSettingsSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
-    xpPerFocusSession: {
-      type: Number,
-      default: 10,
-      min: 0,
-      max: 100,
-    },
   },
   { timestamps: true },
 );

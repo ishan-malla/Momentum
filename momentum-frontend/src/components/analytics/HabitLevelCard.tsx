@@ -34,7 +34,7 @@ const HabitLevelCard = ({ summary }: HabitLevelCardProps) => {
             />
           </div>
           <p className="text-sm text-primary-foreground/85">
-            {summary.levelProgress}/{summary.levelGoal} XP to the next level
+            {summary.levelProgress}/{summary.levelGoal} XP toward the next level
           </p>
         </div>
       </CardContent>

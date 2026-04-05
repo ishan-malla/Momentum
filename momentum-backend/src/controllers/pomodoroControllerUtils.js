@@ -3,6 +3,7 @@ import { PomodoroSettings } from "../models/pomodoroSchema.js";
 
 export const APP_TIMEZONE = "Asia/Kathmandu";
 export const MIN_XP_ELIGIBLE_FOCUS_MINUTES = 5;
+export const FIXED_FOCUS_XP = 10;
 
 export const formatSettings = (settings) => ({
   focusDurationMin: settings.focusDurationInMinutes,
@@ -10,7 +11,6 @@ export const formatSettings = (settings) => ({
   longBreakDurationMin: settings.longBreakDurationInMinutes,
   sessionsUntilLongBreak: settings.sessionsTillLongBreak,
   soundEnabled: settings.soundEnabled,
-  xpPerFocusSession: settings.xpPerFocusSession,
 });
 
 export const formatSession = (session) => ({
@@ -30,19 +30,10 @@ export const clampInteger = (value, min, max, fallback) => {
 
 export const calculateFocusXp = ({
   sessionDurationInMinutes,
-  defaultFocusDurationInMinutes,
-  xpPerFocusSession,
 }) => {
   if (sessionDurationInMinutes <= 0) return 0;
   if (sessionDurationInMinutes < MIN_XP_ELIGIBLE_FOCUS_MINUTES) return 0;
-
-  const normalizedDuration = Math.max(1, defaultFocusDurationInMinutes || 25);
-  const normalizedBaseXp = Math.max(0, xpPerFocusSession ?? 10);
-  if (normalizedBaseXp === 0) return 0;
-  const scaledXp =
-    (sessionDurationInMinutes / normalizedDuration) * normalizedBaseXp;
-
-  return Math.max(1, Math.round(scaledXp));
+  return FIXED_FOCUS_XP;
 };
 
 export const getOrCreatePomodoroSettings = async (userId) => {

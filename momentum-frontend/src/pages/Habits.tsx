@@ -9,8 +9,14 @@ import HabitSummaryCards, {
   StreakCard,
 } from "@/components/habit/HabitSummaryCards";
 import HabitSummarySkeleton from "@/components/habit/HabitSummarySkeleton";
+import XpActivityDisclosure from "@/components/gamification/XpActivityDisclosure";
 import { Card, CardContent } from "@/components/ui/card";
 import { selectCurrentUser } from "@/features/auth/authSlice";
+import {
+  formatMultiplier,
+  getHabitStreakMultiplier,
+  HABIT_BASE_XP,
+} from "@/features/gamification/gamificationDisplay";
 import { getHabitDashboardMetrics } from "@/features/habit/habitMetrics";
 import { useGetHabitHeatMapQuery } from "@/features/habit/habitApiSlice";
 import { useHabitCreate } from "@/features/habit/useHabitCreate";
@@ -65,6 +71,38 @@ const Habits = () => {
   const username = formatDisplayName(user?.username);
   const streakLabel =
     metrics.maxStreak > 0 ? `${metrics.maxStreak} Day Streak Current` : "";
+  const habitXpItems = [
+    {
+      label: "Base Habit Completion",
+      value: `${HABIT_BASE_XP} XP`,
+      detail: "Every completed habit starts with a 10 XP reward.",
+    },
+    {
+      label: "3-Day Streak",
+      value: `${formatMultiplier(getHabitStreakMultiplier(3))} • ${Math.round(HABIT_BASE_XP * getHabitStreakMultiplier(3))} XP`,
+      detail: "A 3-day streak applies your first streak multiplier boost.",
+    },
+    {
+      label: "7-Day Streak",
+      value: `${formatMultiplier(getHabitStreakMultiplier(7))} • ${Math.round(HABIT_BASE_XP * getHabitStreakMultiplier(7))} XP`,
+      detail: "A full week of consistency increases the reward again.",
+    },
+    {
+      label: "14-Day Streak",
+      value: `${formatMultiplier(getHabitStreakMultiplier(14))} • ${Math.round(HABIT_BASE_XP * getHabitStreakMultiplier(14))} XP`,
+      detail: "Two weeks of momentum gives a stronger XP jump.",
+    },
+    {
+      label: "30-Day Streak",
+      value: `${formatMultiplier(getHabitStreakMultiplier(30))} • ${Math.round(HABIT_BASE_XP * getHabitStreakMultiplier(30))} XP`,
+      detail: "Long streaks double the base reward.",
+    },
+    {
+      label: "Quantitative Habits",
+      value: "Full target only",
+      detail: "XP is awarded when the habit reaches its daily target, not for each partial increment.",
+    },
+  ];
 
   const handleMonthChange = (year: number, month: number) => {
     setSelectedYear(year);
@@ -86,6 +124,14 @@ const Habits = () => {
         bestStreak={metrics.maxStreak}
         onAddHabit={openCreateModal}
         analyticsPath="/habits/analytics"
+        xpActivityControl={
+          <XpActivityDisclosure
+            title="Habit XP Activity"
+            subtitle="Open the reward table to see streak multipliers and how habit XP scales."
+            items={habitXpItems}
+            footnote="The streak multiplier shown here is the rule set used when a habit completion is awarded or revoked."
+          />
+        }
       />
 
       {isHabitsLoading ? (

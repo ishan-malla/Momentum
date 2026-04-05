@@ -2,7 +2,8 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
 import { PomodoroSession } from "../models/pomodoroSchema.js";
-import User from "../models/userSchema.js";
+import { applyXpChange } from "../services/gamificationService.js";
+import { toUserProgress } from "../utils/userResponse.js";
 import {
   APP_TIMEZONE,
   calculateFocusXp,
@@ -130,8 +131,6 @@ export const createPomodoroSession = async (req, res) => {
       type === "focus"
         ? calculateFocusXp({
             sessionDurationInMinutes: sessionDuration,
-            defaultFocusDurationInMinutes: settings.focusDurationInMinutes,
-            xpPerFocusSession: settings.xpPerFocusSession,
           })
         : 0;
 
@@ -144,18 +143,30 @@ export const createPomodoroSession = async (req, res) => {
       xpEarned,
     });
 
-    if (xpEarned > 0) {
-      await User.findByIdAndUpdate(userId, {
-        $inc: {
-          totalXp: xpEarned,
-        },
-      });
-    }
+    const gamificationResult =
+      xpEarned > 0
+        ? await applyXpChange({
+            user: req.user,
+            sourceType: "pomodoro",
+            sourceId: createdSession._id,
+            baseXp: xpEarned,
+            direction: 1,
+            occurredAt: endedAt.toDate(),
+          })
+        : {
+            xpChange: 0,
+            userProgress: toUserProgress(req.user),
+            levelUpOccurred: false,
+            levelUpData: null,
+          };
 
     res.status(201).json({
       message: "Pomodoro session saved",
       session: formatSession(createdSession),
-      xpEarned,
+      xpChange: gamificationResult.xpChange,
+      userProgress: gamificationResult.userProgress,
+      levelUpOccurred: gamificationResult.levelUpOccurred,
+      levelUpData: gamificationResult.levelUpData,
     });
   } catch (error) {
     res.status(500).json({

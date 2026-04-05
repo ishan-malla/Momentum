@@ -6,6 +6,10 @@ type ProfileData = {
   email?: string | null;
   bio?: string | null;
   avatarUrl?: string | null;
+  level?: number | null;
+  xp?: number | null;
+  totalXp?: number | null;
+  levelGoal?: number | null;
 };
 
 type Props = {
@@ -41,6 +45,13 @@ export default function ProfileSection({
   onRemoveAvatar,
   onSave,
 }: Props) {
+  const level = profile?.level ?? 1;
+  const levelXp = profile?.xp ?? 0;
+  const totalXp = profile?.totalXp ?? 0;
+  const levelGoal = profile?.levelGoal ?? 250;
+  const progressPercent =
+    levelGoal > 0 ? Math.round((levelXp / levelGoal) * 100) : 0;
+
   return (
     <div className="rounded-lg border border-border bg-card p-6">
       <div className="flex items-center justify-between gap-4">
@@ -115,6 +126,43 @@ export default function ProfileSection({
             className="w-full rounded-lg border border-border bg-card px-4 py-2 font-primary text-[14px] disabled:opacity-70"
             placeholder="Your username"
           />
+        </div>
+      </div>
+
+      <div className="mt-5">
+        <div className="rounded-xl border border-border/80 bg-muted/20 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-[11px] font-secondary uppercase tracking-[0.14em] text-muted-foreground">
+                Progression
+              </p>
+              <h4 className="mt-1 font-heading text-xl font-semibold text-foreground">
+                Level {level}
+              </h4>
+            </div>
+
+            <div className="text-right">
+              <p className="text-sm font-semibold text-foreground">
+                {totalXp.toLocaleString()} XP
+              </p>
+              <p className="text-xs text-muted-foreground">Total XP</p>
+            </div>
+          </div>
+
+          <div className="mt-4 space-y-2">
+            <div className="h-2 overflow-hidden rounded-full bg-border/70">
+              <div
+                className="h-full rounded-full bg-primary transition-all duration-300"
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+            <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+              <span>
+                {levelXp}/{levelGoal} XP toward Level {level + 1}
+              </span>
+              <span>{progressPercent}%</span>
+            </div>
+          </div>
         </div>
       </div>
 

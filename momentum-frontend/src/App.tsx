@@ -11,6 +11,7 @@ import Timer from "./pages/Timer";
 import Habits from "./pages/Habits";
 import TaskCalendar from "./pages/TaskCalendar";
 import Analytics from "./pages/Analytics";
+import PomodoroAnalytics from "./pages/PomodoroAnalytics";
 import Social from "./pages/Social";
 import Achievments from "./pages/Achievments";
 import Settings from "./pages/Settings";
@@ -30,6 +31,7 @@ function App() {
             <Route path="/habits" element={<Habits />} />
             <Route path="/habits/analytics" element={<Analytics />} />
             <Route path="/timer" element={<Timer />} />
+            <Route path="/timer/analytics" element={<PomodoroAnalytics />} />
             <Route path="/task-calendar" element={<TaskCalendar />} />
             <Route
               path="/analytics"

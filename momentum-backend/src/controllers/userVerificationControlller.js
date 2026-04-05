@@ -1,4 +1,5 @@
 import User from "../models/userSchema.js";
+import { ensureUserFriendCode } from "../utils/friendCodeService.js";
 import { sendOTPEmail, sendWelcomeEmail } from "../utils/emailService.js";
 import { generateOTP } from "../utils/generateOTP.js";
 import { emailRegex } from "../utils/validator.js";
@@ -14,6 +15,7 @@ const toSafeUser = (user) => ({
   email: user.email,
   username: user.username,
   avatarUrl: user.avatarUrl || "",
+  friendCode: user.friendCode || "",
   role: user.role,
   isVerified: user.isVerified,
 });
@@ -57,6 +59,7 @@ export const verifyOTP = async (req, res) => {
     user.otp = undefined;
     user.otpExpiry = undefined;
     await user.save();
+    await ensureUserFriendCode(user);
 
     await sendWelcomeEmail(user.email, user.username);
 

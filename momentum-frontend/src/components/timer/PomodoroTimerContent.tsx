@@ -138,8 +138,11 @@ export default function PomodoroTimerContent({ dashboard }: Props) {
               }
               showSettings={showSettings}
               onStartPause={() => {
-                requestPomodoroNotificationPermission();
+                const isStartingSession = !engine.isRunning;
                 engine.onStartPause();
+                if (isStartingSession) {
+                  requestPomodoroNotificationPermission();
+                }
               }}
               onReset={engine.onReset}
               onToggleSound={() => setSoundEnabled((previous) => !previous)}

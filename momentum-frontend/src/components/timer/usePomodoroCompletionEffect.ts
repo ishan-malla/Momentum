@@ -66,7 +66,6 @@ export const usePomodoroCompletionEffect = ({
     const activeEndsAtMs = runtime.endsAtMs;
     const activeMode = runtime.mode;
     const activeDuration = runtime.sessionDurationMin;
-    let transitionTimeoutId: number | null = null;
     let completionHandled = false;
 
     const tick = () => {
@@ -95,23 +94,15 @@ export const usePomodoroCompletionEffect = ({
 
       setRuntime((prev) => {
         if (!prev.isRunning || prev.endsAtMs !== activeEndsAtMs) return prev;
-        return {
+        const completedRuntime: RuntimeState = {
           ...prev,
           isRunning: false,
           endsAtMs: null,
           remainingSec: 0,
         };
+
+        return getTransitionAfterCompletion(completedRuntime, settingsRef.current);
       });
-
-      transitionTimeoutId = window.setTimeout(() => {
-        setRuntime((prev) => {
-          if (prev.endsAtMs) return prev;
-          if (prev.mode !== activeMode) return prev;
-          if (prev.remainingSec !== 0) return prev;
-
-          return getTransitionAfterCompletion(prev, settingsRef.current);
-        });
-      }, 120);
 
       void saveSessionWithRetry(
         payload,
@@ -136,9 +127,6 @@ export const usePomodoroCompletionEffect = ({
     const timerId = window.setInterval(tick, 1000);
     return () => {
       window.clearInterval(timerId);
-      if (transitionTimeoutId !== null && !completionHandled) {
-        window.clearTimeout(transitionTimeoutId);
-      }
     };
   }, [
     runtime.isRunning,

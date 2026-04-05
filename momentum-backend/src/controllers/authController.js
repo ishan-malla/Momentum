@@ -1,4 +1,8 @@
 import User from "../models/userSchema.js";
+import {
+  ensureUserFriendCode,
+  generateUniqueFriendCode,
+} from "../utils/friendCodeService.js";
 import { sendOTPEmail } from "../utils/emailService.js";
 import { generateOTP } from "../utils/generateOTP.js";
 import { emailRegex } from "../utils/validator.js";
@@ -17,6 +21,7 @@ const toSafeUser = (user) => ({
   username: user.username,
   bio: user.bio || "",
   avatarUrl: user.avatarUrl || "",
+  friendCode: user.friendCode || "",
   role: user.role,
   isVerified: user.isVerified,
 });
@@ -56,6 +61,7 @@ export const signup = async (req, res) => {
       username,
       email,
       password,
+      friendCode: await generateUniqueFriendCode(),
       role: role || "user",
       otp,
       otpExpiry,
@@ -118,6 +124,8 @@ export const login = async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
+    await ensureUserFriendCode(user);
+
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
 
@@ -165,6 +173,8 @@ export const refresh = async (req, res) => {
     if (hashToken(refreshToken) !== user.refreshTokenHash) {
       return res.status(401).json({ message: "Session expired. Please log in." });
     }
+
+    await ensureUserFriendCode(user);
 
     // Rotate refresh token
     const newRefreshToken = signRefreshToken(user);

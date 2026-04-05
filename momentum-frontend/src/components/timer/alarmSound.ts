@@ -11,6 +11,7 @@ let alarmPrimed = false;
 let alarmMuted = false;
 let alarmActive = false;
 let alarmPlayCount = 0;
+let alarmPrimeAttemptId = 0;
 let activeFallbackOscillator: OscillatorNode | null = null;
 let activeFallbackGain: GainNode | null = null;
 let fallbackAlarmIntervalId: number | null = null;
@@ -158,10 +159,35 @@ export const primeAlarmSound = () => {
   if (alarmPrimed) return;
   alarmPrimed = true;
   audio.load();
+
+  const primeAttemptId = ++alarmPrimeAttemptId;
+  audio.muted = true;
+  audio.volume = 0;
+
+  const restoreWarmAudioState = () => {
+    if (primeAttemptId !== alarmPrimeAttemptId) return;
+    if (!alarmActive) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    audio.muted = alarmMuted;
+    audio.volume = alarmMuted ? 0 : DEFAULT_ALARM_VOLUME;
+  };
+
+  const playPromise = audio.play();
+  if (!playPromise) {
+    restoreWarmAudioState();
+    return;
+  }
+
+  void playPromise.then(restoreWarmAudioState).catch(() => {
+    restoreWarmAudioState();
+  });
 };
 
 export const playAlarmSound = () => {
   const audio = getAlarmAudio();
+  alarmPrimeAttemptId += 1;
   alarmActive = true;
   alarmPlayCount = 0;
   stopFallbackAlarmLoop();
@@ -204,6 +230,7 @@ export const playAlarmSound = () => {
 };
 
 export const stopAlarmSound = () => {
+  alarmPrimeAttemptId += 1;
   alarmActive = false;
   alarmPlayCount = 0;
   if (alarmAudio) {

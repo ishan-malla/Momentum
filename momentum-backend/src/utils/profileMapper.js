@@ -4,6 +4,7 @@ export const toProfile = (user) => ({
   username: user.username,
   bio: user.bio || "",
   avatarUrl: user.avatarUrl || "",
+  friendCode: user.friendCode || "",
   role: user.role,
   isVerified: user.isVerified,
 });

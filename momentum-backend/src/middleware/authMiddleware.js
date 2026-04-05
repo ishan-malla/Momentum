@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/userSchema.js";
+import { ensureUserFriendCode } from "../utils/friendCodeService.js";
 
 const normalizeRole = (role) => String(role || "").trim().toLowerCase();
 
@@ -25,6 +26,7 @@ export const protect = async (req, res, next) => {
       return res.status(401).json({ message: "User not found" });
     }
 
+    await ensureUserFriendCode(user);
     req.user = user;
     next();
   } catch (error) {

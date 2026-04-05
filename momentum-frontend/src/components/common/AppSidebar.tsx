@@ -48,22 +48,18 @@ const AppSidebar = () => {
 
   useEffect(() => {
     if (!isAccountMenuOpen) return;
-
     const handleOutsideClick = (event: MouseEvent) => {
       const root = accountMenuRef.current;
       if (!root) return;
       if (root.contains(event.target as Node)) return;
       setIsAccountMenuOpen(false);
     };
-
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return;
       setIsAccountMenuOpen(false);
     };
-
     window.addEventListener("mousedown", handleOutsideClick);
     window.addEventListener("keydown", handleEscape);
-
     return () => {
       window.removeEventListener("mousedown", handleOutsideClick);
       window.removeEventListener("keydown", handleEscape);

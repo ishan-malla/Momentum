@@ -10,6 +10,7 @@ import habitRoutes from "./src/routes/habitRoutes.js";
 import profileRoutes from "./src/routes/profileRoutes.js";
 import pomodoroRoutes from "./src/routes/pomodoroRoutes.js";
 import taskRoutes from "./src/routes/taskRoutes.js";
+import friendRoutes from "./src/routes/friendRoutes.js";
 import { startTaskReminderJob } from "./src/jobs/taskReminderJob.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -40,6 +41,7 @@ app.use("/api", habitRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api", pomodoroRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/friends", friendRoutes);
 
 app.get("/", (req, res) => {
   res.json({ message: "API is running" });

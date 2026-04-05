@@ -6,6 +6,7 @@ export type User = {
   username: string;
   bio?: string;
   avatarUrl?: string;
+  friendCode?: string;
   email: string;
   role: "user" | "admin";
   isVerified: boolean;

@@ -47,6 +47,15 @@ const userSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    friendCode: {
+      type: String,
+      uppercase: true,
+      trim: true,
+      unique: true,
+      sparse: true,
+      match: [/^#[A-Z0-9]{6}$/, "Friend code must look like #A3F9KL"],
+      default: null,
+    },
 
     role: {
       type: String,

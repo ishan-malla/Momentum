@@ -3,6 +3,12 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
 import User from "../models/userSchema.js";
+import {
+  applyXpChange,
+  getHabitBaseXp,
+  getHabitStreakMultiplier,
+} from "../services/gamificationService.js";
+import { toUserProgress } from "../utils/userResponse.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -14,7 +20,7 @@ export const getHabits = async (req, res) => {
 
     const habits = await HabitCompletion.find({ user: userId }).populate({
       path: "habitTemplate",
-      select: "name habitType frequency skipDaysInAWeek streak xp isDeleted",
+      select: "name habitType frequency skipDaysInAWeek streak isDeleted",
     });
 
     if (!habits || habits.length === 0) {
@@ -63,7 +69,7 @@ export const getHabitById = async (req, res) => {
       user: userId,
     }).populate({
       path: "habitTemplate",
-      select: "name habitType frequency skipDaysInAWeek streak xp isDeleted",
+      select: "name habitType frequency skipDaysInAWeek streak isDeleted",
     });
 
     if (!habit) {
@@ -133,22 +139,33 @@ export const habitProgress = async (req, res) => {
 
     const habitType = habit.habitTemplate.habitType;
     let streakChanged = false;
+    let gamificationConfig = null;
 
     if (habitType === "binary") {
       if (delta === 1 && !habit.completion) {
         habit.completion = true;
-        user.totalXp += 10;
-        habit.habitTemplate.streak = (habit.habitTemplate.streak ?? 0) + 1;
+        const nextStreak = (habit.habitTemplate.streak ?? 0) + 1;
+        habit.habitTemplate.streak = nextStreak;
         streakChanged = true;
+        gamificationConfig = {
+          baseXp: getHabitBaseXp(),
+          multiplier: getHabitStreakMultiplier(nextStreak),
+          direction: 1,
+        };
       }
       if (delta === -1 && habit.completion) {
+        const awardedStreak = habit.habitTemplate.streak ?? 0;
         habit.completion = false;
-        user.totalXp -= 10;
         habit.habitTemplate.streak = Math.max(
           0,
-          (habit.habitTemplate.streak ?? 0) - 1,
+          awardedStreak - 1,
         );
         streakChanged = true;
+        gamificationConfig = {
+          baseXp: getHabitBaseXp(),
+          multiplier: getHabitStreakMultiplier(awardedStreak),
+          direction: -1,
+        };
       }
     }
 
@@ -172,31 +189,58 @@ export const habitProgress = async (req, res) => {
 
       if (newQuantity === maxFrequency && !wasComplete) {
         habit.completion = true;
-        user.totalXp += 10;
-        habit.habitTemplate.streak = (habit.habitTemplate.streak ?? 0) + 1;
+        const nextStreak = (habit.habitTemplate.streak ?? 0) + 1;
+        habit.habitTemplate.streak = nextStreak;
         streakChanged = true;
+        gamificationConfig = {
+          baseXp: getHabitBaseXp(),
+          multiplier: getHabitStreakMultiplier(nextStreak),
+          direction: 1,
+        };
       }
       if (newQuantity < maxFrequency && wasComplete) {
+        const awardedStreak = habit.habitTemplate.streak ?? 0;
         habit.completion = false;
-        user.totalXp -= 10;
         habit.habitTemplate.streak = Math.max(
           0,
-          (habit.habitTemplate.streak ?? 0) - 1,
+          awardedStreak - 1,
         );
         streakChanged = true;
+        gamificationConfig = {
+          baseXp: getHabitBaseXp(),
+          multiplier: getHabitStreakMultiplier(awardedStreak),
+          direction: -1,
+        };
       }
     }
 
     await habit.save();
-    await user.save();
     if (streakChanged) {
       await habit.habitTemplate.save();
     }
 
+    const gamificationResult = gamificationConfig
+      ? await applyXpChange({
+          user,
+          sourceType: "habit",
+          sourceId: habit._id,
+          ...gamificationConfig,
+        })
+      : {
+          xpChange: 0,
+          userProgress: toUserProgress(user),
+          levelUpOccurred: false,
+          levelUpData: null,
+        };
+
     return res.status(200).json({
       message: "Habit progress updated successfully",
       habit,
-      totalXp: user.totalXp,
+      totalXp: gamificationResult.userProgress.totalXp,
+      xpChange: gamificationResult.xpChange,
+      userProgress: gamificationResult.userProgress,
+      levelUpOccurred: gamificationResult.levelUpOccurred,
+      levelUpData: gamificationResult.levelUpData,
     });
   } catch (error) {
     return res.status(500).json({

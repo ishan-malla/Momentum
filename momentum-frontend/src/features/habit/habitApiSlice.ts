@@ -1,4 +1,6 @@
 import { apiSlice } from "@/api/apiSlice";
+import { syncGamificationMutation } from "@/features/gamification/gamificationMutationSync";
+import type { GamificationMutationPayload } from "@/features/gamification/gamificationTypes";
 import type {
   HabitAnalyticsQuery,
   HabitAnalyticsResponse,
@@ -31,6 +33,12 @@ export type Habit = {
 type MessageResponse = {
   message: string;
 };
+
+type HabitProgressResponse = MessageResponse &
+  GamificationMutationPayload & {
+    habit: Habit;
+    totalXp: number;
+  };
 
 type SkipInfoResponse = {
   skipsRemaining: number;
@@ -99,7 +107,7 @@ export const habitApiSlice = apiSlice.injectEndpoints({
     }),
 
     updateHabitProgress: builder.mutation<
-      MessageResponse,
+      HabitProgressResponse,
       UpdateHabitProgressRequest
     >({
       query: ({ habitId, delta }) => ({
@@ -107,7 +115,10 @@ export const habitApiSlice = apiSlice.injectEndpoints({
         method: "PATCH",
         body: { delta },
       }),
-      invalidatesTags: ["Habits"],
+      async onQueryStarted(_arg, { dispatch, getState, queryFulfilled }) {
+        await syncGamificationMutation(dispatch, getState, queryFulfilled);
+      },
+      invalidatesTags: ["Habits", "Friends", "Profile"],
     }),
 
     updateSkipHabit: builder.mutation<MessageResponse, UpdateSkipHabitRequest>({

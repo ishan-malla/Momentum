@@ -1,4 +1,5 @@
 import AppSidebar from "@/components/common/AppSidebar";
+import GamificationOverlay from "@/components/gamification/GamificationOverlay";
 import MobileQuickNav from "@/components/common/MobileQuickNav";
 import Navbar from "@/components/common/Navbar";
 import { Outlet } from "react-router";
@@ -19,6 +20,7 @@ const Layout = () => {
       </div>
 
       <MobileQuickNav />
+      <GamificationOverlay />
     </div>
   );
 };

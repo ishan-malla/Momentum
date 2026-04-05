@@ -2,6 +2,8 @@ import User from "../models/userSchema.js";
 import { ensureUserFriendCode } from "../utils/friendCodeService.js";
 import { sendOTPEmail, sendWelcomeEmail } from "../utils/emailService.js";
 import { generateOTP } from "../utils/generateOTP.js";
+import { ensureGamificationState } from "../services/gamificationService.js";
+import { toClientUser } from "../utils/userResponse.js";
 import { emailRegex } from "../utils/validator.js";
 import {
   hashToken,
@@ -9,16 +11,6 @@ import {
   signAccessToken,
   signRefreshToken,
 } from "../utils/tokenService.js";
-
-const toSafeUser = (user) => ({
-  id: user._id,
-  email: user.email,
-  username: user.username,
-  avatarUrl: user.avatarUrl || "",
-  friendCode: user.friendCode || "",
-  role: user.role,
-  isVerified: user.isVerified,
-});
 
 // Verify OTP
 export const verifyOTP = async (req, res) => {
@@ -60,6 +52,7 @@ export const verifyOTP = async (req, res) => {
     user.otpExpiry = undefined;
     await user.save();
     await ensureUserFriendCode(user);
+    await ensureGamificationState(user);
 
     await sendWelcomeEmail(user.email, user.username);
 
@@ -72,7 +65,7 @@ export const verifyOTP = async (req, res) => {
 
     res.status(200).json({
       message: "Email verified successfully",
-      user: toSafeUser(user),
+      user: toClientUser(user),
       token: accessToken,
     });
   } catch (error) {

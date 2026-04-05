@@ -2,21 +2,20 @@ import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc.js";
 import timezone from "dayjs/plugin/timezone.js";
 import Friendship from "../models/friendshipSchema.js";
+import XpEvent from "../models/xpEventSchema.js";
 import { HabitCompletion, HabitTemplate } from "../models/habitSchema.js";
 import { PomodoroSession } from "../models/pomodoroSchema.js";
+import { calculateProgressFromTotalXp } from "../utils/gamificationUtils.js";
+import { toUserProgress } from "../utils/userResponse.js";
 import { APP_TIMEZONE } from "./pomodoroControllerUtils.js";
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const LEVEL_GOAL = 100;
-const HABIT_XP = 10;
 const HISTORY_DAYS = 7;
 const ACTIVITY_LIMIT = 8;
 const SIGNIFICANT_FOCUS_MINUTES = 60;
 const SIGNIFICANT_XP = 50;
-
-const toLevel = (totalXp = 0) => Math.floor(totalXp / LEVEL_GOAL) + 1;
 
 const getHistoryDayKeys = () => {
   const today = dayjs().tz(APP_TIMEZONE).startOf("day");
@@ -53,6 +52,23 @@ const addDailyXp = (store, userId, dayKey, xp) => {
   }
 
   dailyValues[dayKey] += xp;
+};
+
+const formatTimeAgo = (value) => {
+  const now = dayjs();
+  const date = dayjs(value);
+  const minutes = now.diff(date, "minute");
+
+  if (minutes < 1) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+
+  const hours = now.diff(date, "hour");
+  if (hours < 24) return `${hours}h ago`;
+
+  const days = now.diff(date, "day");
+  if (days < 7) return `${days}d ago`;
+
+  return date.format("MMM D");
 };
 
 const buildStreakMap = async (userIds) => {
@@ -116,52 +132,19 @@ const buildDailyXpMap = async (userIds, dayKeys) => {
     .endOf("day")
     .toDate();
 
-  const [habitCompletions, pomodoroSessions] = await Promise.all([
-    HabitCompletion.find({
-      user: { $in: userIds },
-      completion: true,
-      date: { $gte: startDate, $lte: endDate },
-    })
-      .select("user date")
-      .lean(),
-    PomodoroSession.find({
-      user: { $in: userIds },
-      type: "focus",
-      xpEarned: { $gt: 0 },
-      endedAt: { $gte: startDate, $lte: endDate },
-    })
-      .select("user endedAt xpEarned")
-      .lean(),
-  ]);
+  const xpEvents = await XpEvent.find({
+    user: { $in: userIds },
+    occurredAt: { $gte: startDate, $lte: endDate },
+  })
+    .select("user occurredAt xpDelta")
+    .lean();
 
-  for (const item of habitCompletions) {
-    const dayKey = dayjs(item.date).tz(APP_TIMEZONE).format("YYYY-MM-DD");
-    addDailyXp(dailyXpMap, item.user, dayKey, HABIT_XP);
-  }
-
-  for (const item of pomodoroSessions) {
-    const dayKey = dayjs(item.endedAt).tz(APP_TIMEZONE).format("YYYY-MM-DD");
-    addDailyXp(dailyXpMap, item.user, dayKey, item.xpEarned ?? 0);
+  for (const item of xpEvents) {
+    const dayKey = dayjs(item.occurredAt).tz(APP_TIMEZONE).format("YYYY-MM-DD");
+    addDailyXp(dailyXpMap, item.user, dayKey, item.xpDelta ?? 0);
   }
 
   return dailyXpMap;
-};
-
-const formatTimeAgo = (value) => {
-  const now = dayjs();
-  const date = dayjs(value);
-  const minutes = now.diff(date, "minute");
-
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
-
-  const hours = now.diff(date, "hour");
-  if (hours < 24) return `${hours}h ago`;
-
-  const days = now.diff(date, "day");
-  if (days < 7) return `${days}d ago`;
-
-  return date.format("MMM D");
 };
 
 const buildActivityFeed = async (users) => {
@@ -172,7 +155,7 @@ const buildActivityFeed = async (users) => {
   const userIds = users.map((user) => user._id);
   const startDate = dayjs().tz(APP_TIMEZONE).subtract(6, "day").startOf("day").toDate();
 
-  const [activeHabitCountMap, habitEvents, focusSessions] = await Promise.all([
+  const [activeHabitCountMap, habitEvents, focusSessions, xpEvents] = await Promise.all([
     buildActiveHabitCountMap(userIds),
     HabitCompletion.find({
       user: { $in: userIds },
@@ -190,10 +173,36 @@ const buildActivityFeed = async (users) => {
     })
       .sort({ endedAt: -1 })
       .lean(),
+    XpEvent.find({
+      user: { $in: userIds },
+      occurredAt: { $gte: startDate },
+    })
+      .select("user occurredAt xpDelta")
+      .sort({ occurredAt: -1 })
+      .lean(),
   ]);
 
+  const xpDayMap = new Map();
   const habitDayMap = new Map();
   const focusDayMap = new Map();
+
+  for (const item of xpEvents) {
+    const userId = String(item.user);
+    const dayKey = dayjs(item.occurredAt).tz(APP_TIMEZONE).format("YYYY-MM-DD");
+    const mapKey = `${userId}-${dayKey}`;
+    const current = xpDayMap.get(mapKey) ?? {
+      totalXp: 0,
+      lastOccurredAt: item.occurredAt,
+    };
+
+    current.totalXp += item.xpDelta ?? 0;
+
+    if (new Date(item.occurredAt) > new Date(current.lastOccurredAt)) {
+      current.lastOccurredAt = item.occurredAt;
+    }
+
+    xpDayMap.set(mapKey, current);
+  }
 
   for (const item of habitEvents) {
     const userId = String(item.user);
@@ -246,9 +255,8 @@ const buildActivityFeed = async (users) => {
       const mapKey = `${userId}-${dayKey}`;
       const habitInfo = habitDayMap.get(mapKey);
       const focusInfo = focusDayMap.get(mapKey);
-      const totalHabitXp = (habitInfo?.completedHabitCount ?? 0) * HABIT_XP;
-      const totalFocusXp = focusInfo?.totalXp ?? 0;
-      const totalXp = totalHabitXp + totalFocusXp;
+      const xpInfo = xpDayMap.get(mapKey);
+      const totalXp = xpInfo?.totalXp ?? 0;
       const hasCompletedAllHabits =
         activeHabitCount > 0 &&
         (habitInfo?.completedHabitCount ?? 0) >= activeHabitCount;
@@ -280,7 +288,8 @@ const buildActivityFeed = async (users) => {
       }
 
       if (!hasCompletedAllHabits && !hasStrongFocusDay && totalXp >= SIGNIFICANT_XP) {
-        const sortDate = focusInfo?.lastEndedAt ?? habitInfo?.lastCompletedAt;
+        const sortDate =
+          focusInfo?.lastEndedAt ?? habitInfo?.lastCompletedAt ?? xpInfo?.lastOccurredAt;
 
         activityItems.push({
           id: `xp-day-${userId}-${dayKey}`,
@@ -306,6 +315,7 @@ const buildLeaderboard = (users, streakMap, dailyXpMap, dayKeys, currentUserId) 
     const userId = String(user._id);
     const currentStreak = streakMap.get(userId) ?? 0;
     const dailyXpValues = dailyXpMap.get(userId) ?? {};
+    const progress = toUserProgress(user);
     const xpHistory = [];
     let runningXp = 0;
 
@@ -315,7 +325,7 @@ const buildLeaderboard = (users, streakMap, dailyXpMap, dayKeys, currentUserId) 
     }
 
     const weeklyXp = xpHistory[xpHistory.length - 1] ?? 0;
-    const startingXp = Math.max(0, (user.totalXp ?? 0) - weeklyXp);
+    const startingXp = Math.max(0, progress.totalXp - weeklyXp);
 
     return {
       id: userId,
@@ -323,13 +333,15 @@ const buildLeaderboard = (users, streakMap, dailyXpMap, dayKeys, currentUserId) 
       bio: user.bio || "",
       avatarUrl: user.avatarUrl || "",
       weeklyXp,
-      level: toLevel(user.totalXp ?? 0),
-      totalXp: user.totalXp ?? 0,
+      level: progress.level,
+      totalXp: progress.totalXp,
       streakCount: currentStreak,
       isCurrentUser: userId === currentUserId,
       history: {
         xp: xpHistory,
-        level: xpHistory.map((xp) => toLevel(startingXp + xp)),
+        level: xpHistory.map(
+          (xp) => calculateProgressFromTotalXp(Math.max(0, startingXp + xp)).level,
+        ),
         streak: dayKeys.map(() => currentStreak),
       },
     };
@@ -345,8 +357,8 @@ export const getSocialDashboard = async (req, res) => {
       status: "accepted",
       $or: [{ requester: currentUserId }, { recipient: currentUserId }],
     })
-      .populate("requester", "username bio avatarUrl totalXp")
-      .populate("recipient", "username bio avatarUrl totalXp")
+      .populate("requester", "username bio avatarUrl totalXp level xp")
+      .populate("recipient", "username bio avatarUrl totalXp level xp")
       .lean();
 
     const friendUsers = friendships
@@ -364,6 +376,8 @@ export const getSocialDashboard = async (req, res) => {
         bio: req.user.bio || "",
         avatarUrl: req.user.avatarUrl || "",
         totalXp: req.user.totalXp ?? 0,
+        level: req.user.level ?? 1,
+        xp: req.user.xp ?? 0,
       },
       ...friendUsers,
     ];

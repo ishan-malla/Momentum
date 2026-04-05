@@ -1,5 +1,6 @@
 import jwt from "jsonwebtoken";
 import User from "../models/userSchema.js";
+import { ensureGamificationState } from "../services/gamificationService.js";
 import { ensureUserFriendCode } from "../utils/friendCodeService.js";
 
 const normalizeRole = (role) => String(role || "").trim().toLowerCase();
@@ -27,6 +28,7 @@ export const protect = async (req, res, next) => {
     }
 
     await ensureUserFriendCode(user);
+    await ensureGamificationState(user);
     req.user = user;
     next();
   } catch (error) {

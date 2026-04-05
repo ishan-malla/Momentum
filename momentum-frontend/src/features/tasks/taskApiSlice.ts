@@ -1,4 +1,6 @@
 import { apiSlice } from "@/api/apiSlice";
+import { syncGamificationMutation } from "@/features/gamification/gamificationMutationSync";
+import type { GamificationMutationPayload } from "@/features/gamification/gamificationTypes";
 import type { Task, TaskFrequency, TaskPayload } from "@/features/tasks/taskTypes";
 
 type TaskApiResponse = {
@@ -33,6 +35,11 @@ const normalizeTask = (task: TaskApiResponse): Task => ({
   updatedAt: task.updatedAt,
 });
 
+type TaskUpdateResponse = GamificationMutationPayload & {
+  message: string;
+  task: TaskApiResponse;
+};
+
 export const taskApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getTasks: builder.query<Task[], { frequency?: TaskFrequency } | void>({
@@ -62,16 +69,27 @@ export const taskApiSlice = apiSlice.injectEndpoints({
       transformResponse: (response: TaskApiResponse) => normalizeTask(response),
       invalidatesTags: [{ type: "Tasks" as const, id: "LIST" }],
     }),
-    updateTask: builder.mutation<Task, { id: string; patch: Partial<TaskPayload> }>({
+    updateTask: builder.mutation<
+      { message: string; task: Task } & GamificationMutationPayload,
+      { id: string; patch: Partial<TaskPayload> }
+    >({
       query: ({ id, patch }) => ({
         url: `/tasks/${id}`,
         method: "PATCH",
         body: patch,
       }),
-      transformResponse: (response: TaskApiResponse) => normalizeTask(response),
+      transformResponse: (response: TaskUpdateResponse) => ({
+        ...response,
+        task: normalizeTask(response.task),
+      }),
+      async onQueryStarted(_arg, { dispatch, getState, queryFulfilled }) {
+        await syncGamificationMutation(dispatch, getState, queryFulfilled);
+      },
       invalidatesTags: (_result, _error, arg) => [
         { type: "Tasks" as const, id: arg.id },
         { type: "Tasks" as const, id: "LIST" },
+        { type: "Friends" as const },
+        { type: "Profile" as const },
       ],
     }),
     deleteTask: builder.mutation<{ message: string }, string>({

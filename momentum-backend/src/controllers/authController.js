@@ -3,8 +3,10 @@ import {
   ensureUserFriendCode,
   generateUniqueFriendCode,
 } from "../utils/friendCodeService.js";
+import { ensureGamificationState } from "../services/gamificationService.js";
 import { sendOTPEmail } from "../utils/emailService.js";
 import { generateOTP } from "../utils/generateOTP.js";
+import { toClientUser } from "../utils/userResponse.js";
 import { emailRegex } from "../utils/validator.js";
 import {
   clearRefreshTokenCookie,
@@ -14,17 +16,6 @@ import {
   signRefreshToken,
   verifyRefreshToken,
 } from "../utils/tokenService.js";
-
-const toSafeUser = (user) => ({
-  id: user._id,
-  email: user.email,
-  username: user.username,
-  bio: user.bio || "",
-  avatarUrl: user.avatarUrl || "",
-  friendCode: user.friendCode || "",
-  role: user.role,
-  isVerified: user.isVerified,
-});
 
 // Signup
 export const signup = async (req, res) => {
@@ -78,7 +69,7 @@ export const signup = async (req, res) => {
 
     res.status(201).json({
       message: "Signup successful. Please verify your email.",
-      user: toSafeUser(newUser),
+      user: toClientUser(newUser),
     });
   } catch (error) {
     console.error("Signup error:", error);
@@ -125,6 +116,7 @@ export const login = async (req, res) => {
     }
 
     await ensureUserFriendCode(user);
+    await ensureGamificationState(user);
 
     const accessToken = signAccessToken(user);
     const refreshToken = signRefreshToken(user);
@@ -136,7 +128,7 @@ export const login = async (req, res) => {
 
     res.status(200).json({
       message: "Login successful",
-      user: toSafeUser(user),
+      user: toClientUser(user),
       token: accessToken,
     });
   } catch (error) {
@@ -175,6 +167,7 @@ export const refresh = async (req, res) => {
     }
 
     await ensureUserFriendCode(user);
+    await ensureGamificationState(user);
 
     // Rotate refresh token
     const newRefreshToken = signRefreshToken(user);
@@ -186,7 +179,7 @@ export const refresh = async (req, res) => {
     const accessToken = signAccessToken(user);
     return res.status(200).json({
       message: "Session refreshed",
-      user: toSafeUser(user),
+      user: toClientUser(user),
       token: accessToken,
     });
   } catch (error) {

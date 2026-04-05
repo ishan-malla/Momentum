@@ -1,4 +1,6 @@
 import Task from "../models/taskSchema.js";
+import { applyXpChange, getTaskBaseXp } from "../services/gamificationService.js";
+import { toUserProgress } from "../utils/userResponse.js";
 
 const validateFrequency = (value) =>
   !value || ["daily", "weekly", "monthly"].includes(value);
@@ -169,6 +171,7 @@ export const updateTask = async (req, res) => {
 
     const task = await Task.findOne({ _id: id, user: userId });
     if (!task) return res.status(404).json({ message: "Task not found" });
+    const previousCompleted = Boolean(task.completed);
 
     if (name !== undefined) task.name = name;
     if (scheduledDate !== undefined) task.scheduledDate = scheduledDate;
@@ -206,7 +209,33 @@ export const updateTask = async (req, res) => {
     }
 
     await task.save();
-    res.status(200).json(task);
+    const nextCompleted = Boolean(task.completed);
+    const completionChanged = previousCompleted !== nextCompleted;
+
+    const gamificationResult = completionChanged
+      ? await applyXpChange({
+          user: req.user,
+          sourceType: "task",
+          sourceId: task._id,
+          baseXp: getTaskBaseXp(task.priority),
+          direction: nextCompleted ? 1 : -1,
+          occurredAt: task.completedAt ?? new Date(),
+        })
+      : {
+          xpChange: 0,
+          userProgress: toUserProgress(req.user),
+          levelUpOccurred: false,
+          levelUpData: null,
+        };
+
+    res.status(200).json({
+      message: "Task updated",
+      task,
+      xpChange: gamificationResult.xpChange,
+      userProgress: gamificationResult.userProgress,
+      levelUpOccurred: gamificationResult.levelUpOccurred,
+      levelUpData: gamificationResult.levelUpData,
+    });
   } catch (error) {
     if (error?.name === "ValidationError") {
       return res.status(400).json({

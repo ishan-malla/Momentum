@@ -1,6 +1,26 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
+const levelUpHistorySchema = new mongoose.Schema(
+  {
+    level: {
+      type: Number,
+      required: true,
+      min: 2,
+    },
+    achievedAt: {
+      type: Date,
+      required: true,
+    },
+    xpThreshold: {
+      type: Number,
+      required: true,
+      min: 0,
+    },
+  },
+  { _id: false },
+);
+
 const userSchema = new mongoose.Schema(
   {
     username: {
@@ -42,10 +62,24 @@ const userSchema = new mongoose.Schema(
       minlength: 6,
     },
 
+    level: {
+      type: Number,
+      default: 1,
+      min: 1,
+    },
+    xp: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     totalXp: {
       type: Number,
       default: 0,
       min: 0,
+    },
+    levelUpHistory: {
+      type: [levelUpHistorySchema],
+      default: [],
     },
     friendCode: {
       type: String,

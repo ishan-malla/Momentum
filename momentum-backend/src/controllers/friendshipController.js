@@ -2,18 +2,13 @@ import mongoose from "mongoose";
 import Friendship from "../models/friendshipSchema.js";
 import { HabitTemplate } from "../models/habitSchema.js";
 import User from "../models/userSchema.js";
+import { toUserProgress } from "../utils/userResponse.js";
 import {
   ensureUserFriendCode,
   isValidFriendCode,
   normalizeFriendCode,
 } from "../utils/friendCodeService.js";
 import { buildFriendshipPairKey } from "../utils/friendshipUtils.js";
-
-const LEVEL_GOAL = 100;
-
-const toLevel = (totalXp = 0) => {
-  return Math.floor(totalXp / LEVEL_GOAL) + 1;
-};
 
 const buildStreakMap = async (userIds) => {
   if (!userIds.length) {
@@ -47,8 +42,8 @@ const toFriendSummary = (user, streakMap) => ({
   username: user.username,
   bio: user.bio || "",
   avatarUrl: user.avatarUrl || "",
-  level: toLevel(user.totalXp),
-  totalXp: user.totalXp ?? 0,
+  level: toUserProgress(user).level,
+  totalXp: toUserProgress(user).totalXp,
   streakCount: streakMap.get(String(user._id)) ?? 0,
 });
 
@@ -57,8 +52,8 @@ const toPendingRequestSummary = (friendship, streakMap) => ({
   username: friendship.requester.username,
   bio: friendship.requester.bio || "",
   avatarUrl: friendship.requester.avatarUrl || "",
-  level: toLevel(friendship.requester.totalXp),
-  totalXp: friendship.requester.totalXp ?? 0,
+  level: toUserProgress(friendship.requester).level,
+  totalXp: toUserProgress(friendship.requester).totalXp,
   streakCount: streakMap.get(String(friendship.requester._id)) ?? 0,
 });
 
@@ -67,8 +62,8 @@ const toLookupSummary = (user, streakMap, relationStatus) => ({
   username: user.username,
   bio: user.bio || "",
   avatarUrl: user.avatarUrl || "",
-  level: toLevel(user.totalXp),
-  totalXp: user.totalXp ?? 0,
+  level: toUserProgress(user).level,
+  totalXp: toUserProgress(user).totalXp,
   streakCount: streakMap.get(String(user._id)) ?? 0,
   relationStatus,
 });
@@ -82,14 +77,14 @@ export const getFriendsOverview = async (req, res) => {
         status: "accepted",
         $or: [{ requester: userId }, { recipient: userId }],
       })
-        .populate("requester", "username bio avatarUrl totalXp")
-        .populate("recipient", "username bio avatarUrl totalXp")
+        .populate("requester", "username bio avatarUrl totalXp level xp")
+        .populate("recipient", "username bio avatarUrl totalXp level xp")
         .lean(),
       Friendship.find({
         status: "pending",
         recipient: userId,
       })
-        .populate("requester", "username bio avatarUrl totalXp")
+        .populate("requester", "username bio avatarUrl totalXp level xp")
         .sort({ createdAt: -1 })
         .lean(),
     ]);
@@ -188,7 +183,7 @@ export const lookupFriendByCode = async (req, res) => {
     }
 
     const user = await User.findOne({ friendCode }).select(
-      "_id username bio avatarUrl totalXp friendCode",
+      "_id username bio avatarUrl totalXp level xp friendCode",
     );
 
     if (!user) {

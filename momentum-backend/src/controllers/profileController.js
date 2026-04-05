@@ -1,5 +1,40 @@
 import User from "../models/userSchema.js";
+import XpEvent from "../models/xpEventSchema.js";
+import dayjs from "dayjs";
+import mongoose from "mongoose";
+import utc from "dayjs/plugin/utc.js";
+import timezone from "dayjs/plugin/timezone.js";
 import { toProfile } from "../utils/profileMapper.js";
+import { toUserProgress } from "../utils/userResponse.js";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const APP_TIMEZONE = "Asia/Kathmandu";
+
+const sumXpForRange = async (userId, startDate, endDate) => {
+  const [result] = await XpEvent.aggregate([
+    {
+      $match: {
+        user: reqObjectId(userId),
+        occurredAt: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        xpEarned: { $sum: "$xpDelta" },
+      },
+    },
+  ]);
+
+  return result?.xpEarned ?? 0;
+};
+
+const reqObjectId = (value) => new mongoose.Types.ObjectId(String(value));
 
 export const getProfile = async (req, res) => {
   try {
@@ -73,6 +108,38 @@ export const updateProfile = async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: "Failed to update profile",
+      error: error.message,
+    });
+  }
+};
+
+export const getProfileStats = async (req, res) => {
+  try {
+    const now = dayjs().tz(APP_TIMEZONE);
+    const todayStart = now.startOf("day").toDate();
+    const todayEnd = now.endOf("day").toDate();
+    const weekStart = now.startOf("week").toDate();
+    const weekEnd = now.endOf("week").toDate();
+    const monthStart = now.startOf("month").toDate();
+    const monthEnd = now.endOf("month").toDate();
+
+    const [xpToday, xpThisWeek, xpThisMonth] = await Promise.all([
+      sumXpForRange(req.user._id, todayStart, todayEnd),
+      sumXpForRange(req.user._id, weekStart, weekEnd),
+      sumXpForRange(req.user._id, monthStart, monthEnd),
+    ]);
+
+    return res.status(200).json({
+      progress: toUserProgress(req.user),
+      periods: {
+        today: xpToday,
+        thisWeek: xpThisWeek,
+        thisMonth: xpThisMonth,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to load profile stats",
       error: error.message,
     });
   }

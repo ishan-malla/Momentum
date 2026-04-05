@@ -1,4 +1,6 @@
 import { apiSlice } from "@/api/apiSlice";
+import { syncGamificationMutation } from "@/features/gamification/gamificationMutationSync";
+import type { GamificationMutationPayload } from "@/features/gamification/gamificationTypes";
 import type {
   PomodoroAnalyticsQuery,
   PomodoroAnalyticsResponse,
@@ -10,7 +12,6 @@ export type PomodoroSettings = {
   longBreakDurationMin: number;
   sessionsUntilLongBreak: number;
   soundEnabled: boolean;
-  xpPerFocusSession: number;
 };
 
 export type PomodoroSession = {
@@ -47,10 +48,9 @@ type CreatePomodoroSessionRequest = {
   durationInMinutes: number;
 };
 
-type CreatePomodoroSessionResponse = {
+type CreatePomodoroSessionResponse = GamificationMutationPayload & {
   message: string;
   session: PomodoroSession;
-  xpEarned: number;
 };
 
 type UpdatePomodoroSettingsResponse = {
@@ -101,7 +101,10 @@ export const pomodoroApiSlice = apiSlice.injectEndpoints({
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Pomodoro"],
+      async onQueryStarted(_arg, { dispatch, getState, queryFulfilled }) {
+        await syncGamificationMutation(dispatch, getState, queryFulfilled);
+      },
+      invalidatesTags: ["Pomodoro", "Friends", "Profile"],
     }),
   }),
 });

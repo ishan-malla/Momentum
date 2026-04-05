@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import XpActivityDisclosure from "@/components/gamification/XpActivityDisclosure";
 import PomodoroHeader from "@/components/timer/PomodoroHeader";
 import PomodoroSettingsModal, {
   type PomodoroDraftSettings,
@@ -16,6 +17,10 @@ import {
   parseDraftSettings,
   toDraftSettings,
 } from "@/components/timer/pomodoroSettingsMapper";
+import {
+  FIXED_FOCUS_XP,
+  formatMultiplier,
+} from "@/features/gamification/gamificationDisplay";
 import {
   notifyPomodoroCompletion,
   requestPomodoroNotificationPermission,
@@ -59,7 +64,7 @@ export default function PomodoroTimerContent({ dashboard }: Props) {
       const response = await createPomodoroSession(payload).unwrap();
 
       if (payload.type !== "focus") return;
-      if (response.xpEarned > 0) return;
+      if (response.xpChange > 0) return;
 
       toast.warning("No XP earned for this session", {
         description: `Focus sessions shorter than ${MIN_XP_ELIGIBLE_FOCUS_MINUTES} minutes do not grant XP.`,
@@ -105,6 +110,28 @@ export default function PomodoroTimerContent({ dashboard }: Props) {
 
   const ringCircumference = 2 * Math.PI * TIMER_RING_RADIUS;
   const ringOffset = ringCircumference * engine.progress;
+  const pomodoroXpItems = [
+    {
+      label: "Eligible Focus Session",
+      value: `${FIXED_FOCUS_XP} XP`,
+      detail: `Focus sessions earn XP once they reach at least ${MIN_XP_ELIGIBLE_FOCUS_MINUTES} minutes.`,
+    },
+    {
+      label: "Pomodoro Multiplier",
+      value: formatMultiplier(1),
+      detail: "Pomodoro currently uses a fixed x1.0 multiplier with no streak or duration bonus.",
+    },
+    {
+      label: "Short Sessions",
+      value: "0 XP",
+      detail: `Focus sessions under ${MIN_XP_ELIGIBLE_FOCUS_MINUTES} minutes do not grant XP.`,
+    },
+    {
+      label: "Break Sessions",
+      value: "0 XP",
+      detail: "Breaks are tracked for analytics, but they do not award XP.",
+    },
+  ];
 
   return (
     <div className="timer-font-scope">
@@ -116,7 +143,16 @@ export default function PomodoroTimerContent({ dashboard }: Props) {
         onApply={applySettings}
       />
 
-      <PomodoroHeader />
+      <PomodoroHeader
+        xpActivityControl={
+          <XpActivityDisclosure
+            title="Pomodoro XP Activity"
+            subtitle="See exactly how focus sessions earn XP and what multiplier applies."
+            items={pomodoroXpItems}
+            footnote="Longer sessions currently improve your focus stats, but not the XP multiplier."
+          />
+        }
+      />
 
       <main className="mx-auto w-full space-y-6 px-4 py-6 sm:space-y-8 sm:px-5 sm:py-8 xl:max-w-7xl xl:px-0">
         <div className="grid items-start gap-4 md:grid-cols-2 lg:grid-cols-[minmax(0,1.65fr)_minmax(0,1fr)]">

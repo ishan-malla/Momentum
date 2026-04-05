@@ -41,7 +41,6 @@ export default function TaskCard({
           description: task.description ?? "",
           priority: task.priority,
           frequency: task.frequency,
-          completed: task.completed,
           reminder: task.reminder,
           reminderOffsetDays: task.reminderOffsetDays ?? 0,
           scheduledDate: task.scheduledDate,

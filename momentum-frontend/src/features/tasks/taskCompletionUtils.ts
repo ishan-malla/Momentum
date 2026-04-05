@@ -1,10 +1,11 @@
-import type { Task } from "@/features/tasks/taskTypes";
+import type { TaskOccurrence } from "@/features/tasks/taskTypes";
 import { parseTaskDateParts } from "@/features/tasks/taskDateUtils";
 
 const startOfWeek = (date: Date) => {
   const start = new Date(date);
   start.setHours(0, 0, 0, 0);
-  start.setDate(start.getDate() - start.getDay());
+  const offsetFromMonday = (start.getDay() + 6) % 7;
+  start.setDate(start.getDate() - offsetFromMonday);
   return start;
 };
 
@@ -14,7 +15,7 @@ const endOfWeek = (date: Date) => {
   return end;
 };
 
-export const canCompleteTask = (task: Task, now: Date = new Date()) => {
+export const canCompleteTask = (task: TaskOccurrence, now: Date = new Date()) => {
   const parts = parseTaskDateParts(task.scheduledDate);
   if (!parts) return false;
 

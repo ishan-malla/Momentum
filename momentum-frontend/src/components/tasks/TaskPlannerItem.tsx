@@ -1,10 +1,16 @@
 import * as React from "react";
 import { Check, MoreVertical } from "lucide-react";
 import TaskForm from "@/components/tasks/TaskForm";
-import type { Task, TaskPayload } from "@/features/tasks/taskTypes";
+import type { TaskOccurrence, TaskPayload } from "@/features/tasks/taskTypes";
+import { cn } from "@/lib/utils";
+import {
+  formatTaskTimeLabel,
+  getPriorityBadgeClassName,
+  getTaskTone,
+} from "@/components/tasks/taskPlannerStyles";
 
 type Props = {
-  task: Task;
+  task: TaskOccurrence;
   isCompleted: boolean;
   isToggleAllowed: boolean;
   isEditing: boolean;
@@ -17,10 +23,10 @@ type Props = {
   onDelete: () => void | Promise<void>;
 };
 
-const formatSchedule = (task: Task) => {
+const formatSchedule = (task: TaskOccurrence) => {
   if (!task.scheduledDate && !task.scheduledTime) return "No schedule";
   if (task.scheduledDate && task.scheduledTime) {
-    return `${task.scheduledDate} • ${task.scheduledTime}`;
+    return `${task.scheduledDate} • ${formatTaskTimeLabel(task.scheduledTime)}`;
   }
   return task.scheduledDate || task.scheduledTime;
 };
@@ -40,6 +46,7 @@ export default function TaskPlannerItem({
 }: Props) {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const menuRef = React.useRef<HTMLDivElement>(null);
+  const tone = getTaskTone(task);
 
   React.useEffect(() => {
     const handlePointer = (event: MouseEvent) => {
@@ -61,15 +68,14 @@ export default function TaskPlannerItem({
       <TaskForm
         title="Edit task"
         initialValues={{
-          name: task.name,
-          description: task.description ?? "",
-          priority: task.priority,
-          frequency: task.frequency,
-          completed: task.completed,
-          reminder: task.reminder,
-          reminderOffsetDays: task.reminderOffsetDays ?? 0,
-          scheduledDate: task.scheduledDate,
-          scheduledTime: task.scheduledTime,
+          name: task.baseTask.name,
+          description: task.baseTask.description ?? "",
+          priority: task.baseTask.priority,
+          frequency: task.baseTask.frequency,
+          reminder: task.baseTask.reminder,
+          reminderOffsetDays: task.baseTask.reminderOffsetDays ?? 0,
+          scheduledDate: task.baseTask.scheduledDate,
+          scheduledTime: task.baseTask.scheduledTime,
         }}
         submitLabel="Update task"
         onSubmit={onSave}
@@ -80,7 +86,13 @@ export default function TaskPlannerItem({
   }
 
   return (
-    <div className="flex flex-wrap items-start gap-3 rounded-xl border border-border bg-card px-4 py-3">
+    <div
+      className={cn(
+        "relative flex flex-wrap items-start gap-3 rounded-[1.15rem] border px-4 py-4 shadow-[0_10px_30px_rgba(57,52,43,0.06)]",
+        isMenuOpen && "z-30",
+        tone.surfaceClassName,
+      )}
+    >
       <button
         type="button"
         className={`flex h-6 w-6 shrink-0 items-center justify-center rounded transition-colors ${
@@ -99,25 +111,31 @@ export default function TaskPlannerItem({
         {isCompleted && <Check className="h-3.5 w-3.5" />}
       </button>
 
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="min-w-0 flex-1 pl-1">
+        <div className="flex items-start justify-between gap-3">
           <p
             className={[
-              "truncate text-sm font-heading font-semibold",
-              isCompleted ? "text-muted-foreground line-through" : "text-foreground",
+              "min-w-0 truncate pr-2 text-sm font-heading font-semibold",
+              isCompleted ? "text-[#8f877a] line-through" : "text-[#304034]",
             ].join(" ")}
           >
             {task.name}
           </p>
-          <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+          <span
+            className={cn(
+              "shrink-0 rounded-full border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]",
+              getPriorityBadgeClassName(task.priority),
+            )}
+          >
             {task.priority}
           </span>
         </div>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {formatSchedule(task)} • {task.frequency}
+        <p className="mt-1 text-xs text-[#7b7467]">{formatSchedule(task)}</p>
+        <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8a826f]">
+          {task.frequency}
         </p>
         {task.description ? (
-          <p className="mt-2 text-xs text-muted-foreground">{task.description}</p>
+          <p className="mt-2 text-xs leading-5 text-[#60594f]">{task.description}</p>
         ) : null}
       </div>
 
@@ -125,7 +143,7 @@ export default function TaskPlannerItem({
         <button
           type="button"
           onClick={() => setIsMenuOpen((prev) => !prev)}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted/40 hover:text-foreground"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-[#7b7467] transition-colors hover:bg-[#f6f1e8] hover:text-[#304034]"
           aria-haspopup="menu"
           aria-expanded={isMenuOpen}
           aria-label="Task actions"
@@ -136,7 +154,7 @@ export default function TaskPlannerItem({
         {isMenuOpen && (
           <div
             role="menu"
-            className="absolute right-0 top-full z-20 mt-1 w-28 overflow-hidden rounded-md border border-border bg-popover p-1 text-sm shadow-md animate-drop-in"
+            className="absolute right-0 top-full z-40 mt-1 w-28 overflow-hidden rounded-md border border-[#e7dfd2] bg-[#fffdfa] p-1 text-sm shadow-[0_12px_24px_rgba(57,52,43,0.12)] animate-drop-in"
           >
             <button
               type="button"
@@ -145,7 +163,7 @@ export default function TaskPlannerItem({
                 setIsMenuOpen(false);
                 onEdit();
               }}
-              className="flex w-full items-center rounded-sm px-2 py-1.5 text-left text-foreground transition-colors hover:bg-muted/60"
+              className="flex w-full items-center rounded-sm px-2 py-1.5 text-left text-[#304034] transition-colors hover:bg-[#f6f1e8]"
             >
               Edit
             </button>
@@ -157,7 +175,7 @@ export default function TaskPlannerItem({
                 onDelete();
               }}
               disabled={isDeleting}
-              className="flex w-full items-center rounded-sm px-2 py-1.5 text-left text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-60"
+              className="flex w-full items-center rounded-sm px-2 py-1.5 text-left text-destructive transition-colors hover:bg-[#fff1ea] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {isDeleting ? "Deleting..." : "Delete"}
             </button>

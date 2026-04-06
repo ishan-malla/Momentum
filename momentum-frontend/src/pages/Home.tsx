@@ -1,20 +1,78 @@
-import { useMemo } from "react";
-import DeleteHabitConfirmModal from "@/components/habit/DeleteHabitConfirmModal";
-import HabitListSection from "@/components/habit/HabitListSection";
+import { toast } from "sonner";
+import HomeAttentionPanel from "@/components/home/HomeAttentionPanel";
+import HomeAppOverviewSection from "@/components/home/HomeAppOverviewSection";
+import HomeHabitListCard from "@/components/home/HomeHabitListCard";
+import HomeTaskQueueCard from "@/components/home/HomeTaskQueueCard";
 import GreetUser from "@/components/users/GreetUser";
-import { useGetTasksQuery } from "@/features/tasks/taskApiSlice";
-import type { Task } from "@/features/tasks/taskTypes";
+import { useGetHabitAnalyticsQuery } from "@/features/habit/habitApiSlice";
+import { getHomeAppOverviewData } from "@/features/home/homeAppOverview";
+import {
+  getHomeOverviewData,
+  type HomeAttentionItem,
+} from "@/features/home/homeOverview";
 import { useHabitInteractions } from "@/features/habit/useHabitInteractions";
+import {
+  useGetPomodoroAnalyticsQuery,
+  useGetPomodoroDashboardQuery,
+} from "@/features/pomodoro/pomodoroApiSlice";
+import { useGetTasksQuery, useUpdateTaskMutation } from "@/features/tasks/taskApiSlice";
+import type { TaskOccurrence } from "@/features/tasks/taskTypes";
+
+const HOME_OVERVIEW_DAYS = 7;
+
+const getApiErrorMessage = (error: unknown, fallback: string) => {
+  if (!error || typeof error !== "object") return fallback;
+
+  if ("data" in error) {
+    const data = (error as { data?: unknown }).data;
+    if (data && typeof data === "object" && "error" in data) {
+      const message = (data as { error?: string }).error;
+      if (typeof message === "string" && message.trim().length > 0) return message;
+    }
+    if (data && typeof data === "object" && "message" in data) {
+      const message = (data as { message?: string }).message;
+      if (typeof message === "string" && message.trim().length > 0) return message;
+    }
+  }
+
+  if ("error" in error) {
+    const message = (error as { error?: unknown }).error;
+    if (typeof message === "string" && message.trim().length > 0) return message;
+  }
+
+  return fallback;
+};
+
+const getAttentionSubtitle = (
+  items: HomeAttentionItem[],
+  isHabitsLoading: boolean,
+  isTasksLoading: boolean,
+  hasTasks: boolean,
+) => {
+  if (isHabitsLoading || (isTasksLoading && !hasTasks)) {
+    return "Pulling together today’s priorities.";
+  }
+
+  if (items.length > 0) {
+    return "Start with the short list below, then use the rest of the page only when you need more detail.";
+  }
+
+  return "Nothing urgent is stacked up right now. Keep the queue and habits close, but the day is in a good place.";
+};
 
 const Home = () => {
-  const today = new Date().toISOString().split("T")[0];
-  const { data: tasks = [], isLoading: isTasksLoading, isError: isTasksError } =
+  const now = new Date();
+  const { data: tasks = [], isLoading: isTasksLoading, isError: isTasksError, refetch: refetchTasks } =
     useGetTasksQuery();
-
-  const todaysTasks = useMemo(
-    () => tasks.filter((task: Task) => task.scheduledDate === today),
-    [tasks, today],
-  );
+  const { data: habitAnalytics, isLoading: isHabitAnalyticsLoading, isError: isHabitAnalyticsError } =
+    useGetHabitAnalyticsQuery({ days: HOME_OVERVIEW_DAYS });
+  const { data: pomodoroDashboard, error: pomodoroError } = useGetPomodoroDashboardQuery();
+  const {
+    data: pomodoroAnalytics,
+    isLoading: isPomodoroAnalyticsLoading,
+    isError: isPomodoroAnalyticsError,
+  } = useGetPomodoroAnalyticsQuery({ days: HOME_OVERVIEW_DAYS });
+  const [updateTask, { isLoading: isUpdatingTask }] = useUpdateTaskMutation();
 
   const {
     habits,
@@ -23,93 +81,94 @@ const Home = () => {
     hasQueryError,
     refetchHabits,
     actionsDisabled,
-    pendingDelete,
-    isDeletingHabit,
     handleToggleBinary,
     handleUpdateQuantity,
-    handleToggleSkip,
-    requestDeleteHabit,
-    closeDeleteDialog,
-    confirmDeleteHabit,
   } = useHabitInteractions();
 
-  return (
-    <div>
-      <GreetUser />
-      <section className="mx-auto mt-4 w-full space-y-4 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
-        <h3 className="font-heading text-[24px] font-semibold text-foreground sm:text-[28px]">
-          Today&apos;s Habits
-        </h3>
+  const overview = getHomeOverviewData({
+    habits,
+    hasHabitError: hasQueryError,
+    tasks,
+    hasTaskError: isTasksError,
+    pomodoroDashboard,
+    hasPomodoroError: Boolean(pomodoroError),
+    now,
+  });
 
-        <HabitListSection
-          habits={habits}
-          habitsError={habitsError}
-          isLoading={isHabitsLoading}
-          hasQueryError={hasQueryError}
-          onRetry={refetchHabits}
-          emptyMessage="No habits for today yet. Create one from the Habits page."
-          actionsDisabled={actionsDisabled}
-          onToggleBinary={handleToggleBinary}
-          onUpdateQuantity={handleUpdateQuantity}
-          onToggleSkip={handleToggleSkip}
-          onDelete={requestDeleteHabit}
+  const attentionSubtitle = getAttentionSubtitle(
+    overview.attentionItems,
+    isHabitsLoading,
+    isTasksLoading,
+    tasks.length > 0,
+  );
+  const appOverview = getHomeAppOverviewData({
+    habitTrend: habitAnalytics?.completionTrend ?? [],
+    taskTrend: overview.taskAnalytics.trend.slice(-HOME_OVERVIEW_DAYS),
+    focusTrend: pomodoroAnalytics?.dailyTrend ?? [],
+    now,
+  });
+  const isAppOverviewLoading = isHabitAnalyticsLoading || isPomodoroAnalyticsLoading;
+  const hasAppOverviewError = isHabitAnalyticsError || isPomodoroAnalyticsError;
+
+  const handleToggleTask = async (task: TaskOccurrence, nextCompleted: boolean) => {
+    try {
+      await updateTask({
+        id: task.taskId,
+        patch: { completed: nextCompleted, occurrenceDate: task.occurrenceDate },
+      }).unwrap();
+    } catch (error: unknown) {
+      const fallback = nextCompleted
+        ? "Task can only be completed during its scheduled period."
+        : "Could not update task.";
+      toast.error(getApiErrorMessage(error, fallback));
+    }
+  };
+
+  return (
+    <div className="animate-fade-in pb-8">
+      <GreetUser />
+
+      <HomeAppOverviewSection
+        data={appOverview}
+        isLoading={isAppOverviewLoading}
+        hasError={hasAppOverviewError}
+      />
+
+      <section className="animate-drop-in mx-auto mt-6 grid w-full gap-5 px-4 sm:px-5 xl:max-w-7xl xl:grid-cols-[minmax(0,1.2fr)_340px] xl:px-0">
+        <HomeAttentionPanel
+          isLoading={isHabitsLoading || (isTasksLoading && tasks.length === 0)}
+          items={overview.attentionItems}
+          stats={overview.summaryStats}
+          subtitle={attentionSubtitle}
+        />
+        <HomeTaskQueueCard
+          tasks={overview.todayQueue}
+          nextTask={overview.nextTask}
+          todayValue={overview.todayValue}
+          now={now}
+          isLoading={isTasksLoading && tasks.length === 0}
+          isError={isTasksError}
+          isUpdating={isUpdatingTask}
+          quickStats={overview.quickStats}
+          onRetry={refetchTasks}
+          onToggle={handleToggleTask}
         />
       </section>
 
-      <section className="mx-auto mt-10 w-full space-y-4 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
-        <h3 className="font-heading text-[24px] font-semibold text-foreground sm:text-[28px]">
-          Today&apos;s Tasks
-        </h3>
-
-        {isTasksLoading && (
-          <p className="text-sm text-muted-foreground">Loading tasks...</p>
-        )}
-        {isTasksError && (
-          <p className="text-sm text-destructive">Could not load tasks.</p>
-        )}
-        {!isTasksLoading && !isTasksError && todaysTasks.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            No tasks scheduled for today.
-          </p>
-        )}
-
-        <div className="space-y-3">
-          {todaysTasks.map((task) => (
-            <div
-              key={task.id}
-              className="flex items-start gap-3 rounded-xl border border-border bg-card px-4 py-3"
-            >
-              <div className="mt-1 h-2.5 w-2.5 rounded-full bg-primary/70" />
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="truncate text-sm font-heading font-semibold text-foreground">
-                    {task.name}
-                  </p>
-                  <span className="rounded-full border border-border px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                    {task.priority}
-                  </span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {task.scheduledTime}
-                </p>
-                {task.description ? (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {task.description}
-                  </p>
-                ) : null}
-              </div>
-            </div>
-          ))}
+      <section className="animate-drop-in animate-delay-150 mx-auto mt-6 w-full px-4 sm:px-5 xl:max-w-7xl xl:px-0">
+        <div id="today-habits">
+          <HomeHabitListCard
+            habits={habits}
+            habitsError={habitsError}
+            isLoading={isHabitsLoading}
+            hasQueryError={hasQueryError}
+            actionsDisabled={actionsDisabled}
+            onRetry={refetchHabits}
+            onToggleBinary={handleToggleBinary}
+            onUpdateQuantity={handleUpdateQuantity}
+          />
         </div>
       </section>
-
-      <DeleteHabitConfirmModal
-        open={Boolean(pendingDelete)}
-        habitName={pendingDelete?.habitName ?? ""}
-        isSubmitting={isDeletingHabit}
-        onCancel={closeDeleteDialog}
-        onConfirm={confirmDeleteHabit}
-      />
     </div>
   );
 };

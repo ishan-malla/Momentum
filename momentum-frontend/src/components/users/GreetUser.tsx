@@ -1,63 +1,48 @@
+import { useSelector } from "react-redux";
 import { selectCurrentUser } from "@/features/auth/authSlice";
 import { formatDisplayName, getDayGreeting } from "@/utils/greeting";
-import { useSelector } from "react-redux";
 
 const GreetUser = () => {
   const user = useSelector(selectCurrentUser);
   const greeting = getDayGreeting();
   const username = formatDisplayName(user?.username);
-  const levelProgressPercent =
+  const progressPercent =
     user && user.levelGoal > 0 ? Math.round((user.xp / user.levelGoal) * 100) : 0;
 
   return (
-    <section className="mx-auto mt-6 w-full px-4 font-timer sm:mt-7 sm:px-5 xl:max-w-7xl xl:px-0">
-      <p className="text-[11px] font-secondary uppercase tracking-[0.14em] text-muted-foreground/85">
-        Overview
-      </p>
-      <h1 className="mt-1 font-heading text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-        {`${greeting}, ${username}`}
-      </h1>
-      <p className="mt-1.5 max-w-xl text-sm text-muted-foreground">
-        Keep building momentum. Small steps lead to big changes.
-      </p>
-
-      {user ? (
-        <div className="mt-5 max-w-xl rounded-2xl border border-[#ddd6c8] bg-[#fffdfa] p-4 shadow-[0_10px_30px_rgba(57,52,43,0.06)]">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-secondary uppercase tracking-[0.14em] text-[#8a826f]">
-                Current Level
-              </p>
-              <h2 className="mt-1 font-heading text-2xl font-semibold text-[#2f3e32]">
-                Level {user.level}
-              </h2>
-            </div>
-
-            <div className="text-right">
-              <p className="text-sm font-semibold text-[#2f3e32]">
-                {user.totalXp.toLocaleString()} XP
-              </p>
-              <p className="text-xs text-[#8a826f]">Total progress</p>
-            </div>
-          </div>
-
-          <div className="mt-4 space-y-2">
-            <div className="h-2 overflow-hidden rounded-full bg-[#efe7da]">
-              <div
-                className="h-full rounded-full bg-[#d98d32] transition-all duration-300"
-                style={{ width: `${levelProgressPercent}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between gap-3 text-sm text-[#6f675b]">
-              <span>
-                {user.xp}/{user.levelGoal} XP toward Level {user.level + 1}
-              </span>
-              <span>{levelProgressPercent}%</span>
-            </div>
-          </div>
+    <section className="mx-auto mt-6 w-full px-4 sm:px-5 xl:max-w-7xl xl:px-0">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-[11px] font-secondary uppercase tracking-[0.14em] text-[#9c8b6d]">
+            Overview
+          </p>
+          <h1 className="mt-1 font-heading text-[2.15rem] font-semibold tracking-[-0.03em] text-[#2f3e32]">
+            {`${greeting}, ${username}`}
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-[#7b7467]">
+            Start with what matters today, then keep the rest of the page out of the way.
+          </p>
         </div>
-      ) : null}
+
+        {user ? (
+          <div className="flex flex-wrap gap-2">
+            <div className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm text-primary">
+              <span className="opacity-80">Level </span>
+              <span className="font-semibold">{user.level}</span>
+            </div>
+            <div className="rounded-full border border-[#ddd6c8] bg-[#fffdfa] px-3 py-1.5 text-sm text-[#2f3e32]">
+              <span className="text-[#7b7467]">XP </span>
+              <span className="font-semibold">{user.totalXp.toLocaleString()}</span>
+            </div>
+            <div className="rounded-full border border-primary/20 bg-primary/10 px-3 py-1.5 text-sm text-primary">
+              <span className="opacity-80">Next level </span>
+              <span className="font-semibold">{progressPercent}%</span>
+            </div>
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 };
+
 export default GreetUser;

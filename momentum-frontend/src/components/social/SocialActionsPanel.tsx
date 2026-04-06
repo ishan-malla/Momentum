@@ -1,13 +1,10 @@
-import { useEffect, useState } from "react";
-import SocialAvatar from "@/components/social/SocialAvatar";
+import { useState } from "react";
+import SocialFriendPreviewCard from "@/components/social/SocialFriendPreviewCard";
+import SocialPendingRequestsList from "@/components/social/SocialPendingRequestsList";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import {
-  useLazyLookupFriendByCodeQuery,
-  type FriendLookupProfile,
-  type PendingRequest,
-} from "@/features/friends/friendsApiSlice";
+import { type FriendLookupProfile, useLazyLookupFriendByCodeQuery, type PendingRequest } from "@/features/friends/friendsApiSlice";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
 
@@ -31,15 +28,8 @@ const SocialActionsPanel = ({
   onDeclineRequest,
 }: SocialActionsPanelProps) => {
   const [lookupMessage, setLookupMessage] = useState("");
-  const [previewProfile, setPreviewProfile] =
-    useState<FriendLookupProfile | null>(null);
-  const [lookupFriendByCode, { isFetching: isLookingUp }] =
-    useLazyLookupFriendByCodeQuery();
-
-  useEffect(() => {
-    setLookupMessage("");
-    setPreviewProfile(null);
-  }, [friendCode]);
+  const [previewProfile, setPreviewProfile] = useState<FriendLookupProfile | null>(null);
+  const [lookupFriendByCode, { isFetching: isLookingUp }] = useLazyLookupFriendByCodeQuery();
 
   const handlePreview = async () => {
     if (!friendCode.trim()) {
@@ -161,7 +151,11 @@ const SocialActionsPanel = ({
         >
           <Input
             value={friendCode}
-            onChange={(event) => onFriendCodeChange(event.target.value)}
+            onChange={(event) => {
+              onFriendCodeChange(event.target.value);
+              setLookupMessage("");
+              setPreviewProfile(null);
+            }}
             placeholder="Enter friend code e.g. #A3F9KL"
             className="h-11 rounded-xl border-[#ddd6c8] bg-[#fffdfa] text-sm shadow-none placeholder:text-[#9d9588] focus-visible:border-[#90a77f] focus-visible:ring-[#90a77f]/20"
           />
@@ -180,109 +174,20 @@ const SocialActionsPanel = ({
         ) : null}
 
         {previewProfile ? (
-          <div className="rounded-[1rem] border border-[#e6ded0] bg-[#fffdfa] p-4">
-            <div className="flex items-start gap-3">
-              <SocialAvatar
-                username={previewProfile.username}
-                avatarUrl={previewProfile.avatarUrl}
-                className="h-12 w-12"
-              />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-semibold text-[#2f3e32]">
-                  {previewProfile.username}
-                </p>
-                <p className="mt-1 text-sm leading-6 text-[#6f675a]">
-                  {previewProfile.bio?.trim() || "No bio added yet."}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2 text-xs text-[#8a826f]">
-                  <span className="rounded-full bg-[#f3ede4] px-2.5 py-1 font-semibold text-[#756047]">
-                    Lvl {previewProfile.level}
-                  </span>
-                  <span className="rounded-full bg-[#eef3e8] px-2.5 py-1 font-semibold text-[#4b6349]">
-                    {previewProfile.totalXp.toLocaleString()} XP
-                  </span>
-                  <span className="rounded-full bg-[#fff1e8] px-2.5 py-1 font-semibold text-[#d46b39]">
-                    {previewProfile.streakCount} day streak
-                  </span>
-                </div>
-                <p className="mt-3 text-sm text-[#7b7467]">
-                  {relationMeta.message}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-4 flex justify-end">
-              <Button
-                type="button"
-                onClick={onSendRequest}
-                disabled={!relationMeta.canSend}
-                className="h-10 rounded-xl bg-[#6f8d6e] px-4 text-sm text-white shadow-none hover:bg-[#5f7c5e] disabled:bg-[#d8d1c4] disabled:text-[#7b7467]"
-              >
-                {relationMeta.buttonLabel}
-              </Button>
-            </div>
-          </div>
+          <SocialFriendPreviewCard
+            profile={previewProfile}
+            message={relationMeta.message}
+            canSend={relationMeta.canSend}
+            buttonLabel={relationMeta.buttonLabel}
+            onSendRequest={onSendRequest}
+          />
         ) : null}
 
-        <div className="space-y-3 border-t border-[#e9e1d5] pt-4">
-          <div className="flex items-center justify-between gap-3">
-            <h3 className="font-secondary text-xs font-semibold uppercase tracking-[0.14em] text-[#8a826f]">
-              Pending Requests
-            </h3>
-            <span className="text-xs text-[#8a826f]">{requests.length}</span>
-          </div>
-
-          {requests.length ? (
-            <div className="max-h-[320px] space-y-2 overflow-y-auto pr-1 [scrollbar-color:#d8d1c4_transparent] [scrollbar-width:thin] [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[#d8d1c4] [&::-webkit-scrollbar-thumb]:border-[2px] [&::-webkit-scrollbar-thumb]:border-transparent [&::-webkit-scrollbar-track]:bg-transparent">
-              {requests.map((request) => (
-                <div
-                  key={request.id}
-                  className="rounded-[0.95rem] border border-[#e6ded0] bg-[#fffdfa] p-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <SocialAvatar
-                      username={request.username}
-                      avatarUrl={request.avatarUrl}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-[#2f3e32]">
-                        {request.username}
-                      </p>
-                      <p className="text-xs text-[#8a826f]">
-                        Lvl {request.level} · {request.totalXp.toLocaleString()}{" "}
-                        XP
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 flex gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => onAcceptRequest(request.id)}
-                      className="h-9 rounded-xl bg-[#6f8d6e] px-3.5 text-sm text-white hover:bg-[#5f7c5e]"
-                    >
-                      Accept
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      onClick={() => onDeclineRequest(request.id)}
-                      className="h-9 rounded-xl border-[#ddd6c8] bg-[#fffdfa] px-3.5 text-sm text-[#7b7467] hover:bg-[#f6f1e8]"
-                    >
-                      Decline
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-[0.95rem] border border-dashed border-[#e8ddcc] bg-[#fffdfa] px-4 py-5 text-sm text-[#8a826f]">
-              No pending requests right now.
-            </div>
-          )}
-        </div>
+        <SocialPendingRequestsList
+          requests={requests}
+          onAcceptRequest={onAcceptRequest}
+          onDeclineRequest={onDeclineRequest}
+        />
       </CardContent>
     </Card>
   );

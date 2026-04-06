@@ -1,45 +1,27 @@
 import {
-  Calendar,
-  CheckSquare,
-  Home,
   Menu,
-  Shield,
-  Timer,
-  Trophy,
-  Users,
   X,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { useMemo, useState } from "react";
-import { NavLink } from "react-router";
+import { NavLink, useLocation } from "react-router";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "@/features/auth/authSlice";
+import { getPrimaryNavigation, SETTINGS_NAV_ITEM } from "@/components/common/appNavigation";
+import { cn } from "@/lib/utils";
 
 const Navbar = () => {
   const user = useSelector(selectCurrentUser);
-  const [open, setOpen] = useState(false);
+  const location = useLocation();
+  const [openPath, setOpenPath] = useState<string | null>(null);
 
-  const navItems = useMemo(() => {
-    const items = [
-      { to: "/home", label: "Overview", icon: Home, end: true },
-      { to: "/habits", label: "Habits", icon: CheckSquare, end: false },
-      { to: "/timer", label: "Timer", icon: Timer, end: false },
-      { to: "/task-calendar", label: "Tasks & Calendar", icon: Calendar, end: false },
-      { to: "/social", label: "Social", icon: Users, end: false },
-      { to: "/achievments", label: "Achievements", icon: Trophy, end: false },
-    ] as const;
-
-    if (user?.role === "admin") {
-      return [...items, { to: "/admin", label: "Admin", icon: Shield, end: false }] as const;
-    }
-
-    return items;
-  }, [user?.role]);
+  const navItems = useMemo(() => getPrimaryNavigation(user?.role), [user?.role]);
+  const open = openPath === location.pathname;
 
   return (
-    <div className="relative flex h-14 items-center border-b border-border/70 bg-card/95 backdrop-blur md:hidden">
+    <div className="relative flex h-14 items-center border-b border-sidebar-border/80 bg-sidebar md:hidden">
       <div className="flex h-full w-full items-center justify-between px-4 sm:px-5">
-        <h1 className="font-elegant text-base font-semibold tracking-tight sm:text-lg">
+        <h1 className="font-secondary text-base font-semibold tracking-tight text-foreground sm:text-lg">
           Momentum
         </h1>
 
@@ -47,8 +29,8 @@ const Navbar = () => {
           <Button
             type="button"
             variant="outline"
-            className="h-9 w-9 border-border/70 bg-transparent p-0 hover:bg-secondary/90"
-            onClick={() => setOpen((v) => !v)}
+            className="h-9 w-9 rounded-lg border-sidebar-border/80 bg-sidebar p-0 text-foreground shadow-none hover:bg-sidebar-accent"
+            onClick={() => setOpenPath((current) => (current === location.pathname ? null : location.pathname))}
             aria-label={open ? "Close menu" : "Open menu"}
             aria-expanded={open}
           >
@@ -60,43 +42,73 @@ const Navbar = () => {
       {open && (
         <>
           <div
-            className="fixed inset-0 z-40 bg-black/20 md:hidden"
-            onClick={() => setOpen(false)}
+            className="animate-fade-in fixed inset-0 z-40 bg-[#2f2a22]/18 md:hidden"
+            onClick={() => setOpenPath(null)}
             aria-hidden="true"
           />
-          <div className="absolute left-0 right-0 top-full z-50 border-b border-border/70 bg-card md:hidden">
-            <div className="mx-auto px-4 py-3">
-              <div className="grid gap-1">
+          <div className="animate-drop-in absolute left-3 right-3 top-[calc(100%+0.5rem)] z-50 overflow-hidden rounded-xl border border-sidebar-border/80 bg-sidebar md:hidden">
+            <div className="mx-auto px-3 py-3">
+              <div className="grid gap-1.5">
                 {navItems.map(({ to, label, icon: Icon, end }) => (
                   <NavLink
                     key={to}
                     to={to}
                     end={end}
-                    onClick={() => setOpen(false)}
                     className={({ isActive }) =>
-                      [
-                        "group flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-franklin",
+                      cn(
+                        "group flex items-center gap-3 rounded-lg border px-3.5 py-3 text-sm font-secondary transition-colors",
                         isActive
-                          ? "border-border bg-secondary text-foreground"
-                          : "border-transparent text-muted-foreground hover:bg-secondary hover:text-foreground",
-                      ].join(" ")
+                          ? "border-sidebar-border bg-sidebar-accent text-foreground"
+                          : "border-transparent text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                      )
                     }
+                    onClick={() => setOpenPath(null)}
                   >
                     {({ isActive }) => (
                       <>
                         <Icon
-                          className={[
-                            "h-4 w-4 transition-colors",
+                          className={cn(
+                            "h-4 w-4 shrink-0 transition-colors duration-200",
                             isActive
                               ? "text-foreground"
                               : "text-muted-foreground group-hover:text-foreground",
-                          ].join(" ")}
+                          )}
                         />
                         {label}
                       </>
                     )}
                   </NavLink>
                 ))}
+              </div>
+
+              <div className="mt-3 border-t border-sidebar-border/70 pt-3">
+                <NavLink
+                  to={SETTINGS_NAV_ITEM.to}
+                  end={SETTINGS_NAV_ITEM.end}
+                  className={({ isActive }) =>
+                    cn(
+                      "group flex items-center gap-3 rounded-lg border px-3.5 py-3 text-sm font-secondary transition-colors",
+                      isActive
+                        ? "border-sidebar-border bg-sidebar-accent text-foreground"
+                        : "border-transparent text-muted-foreground hover:bg-sidebar-accent hover:text-foreground",
+                    )
+                  }
+                  onClick={() => setOpenPath(null)}
+                >
+                  {({ isActive }) => (
+                    <>
+                      <SETTINGS_NAV_ITEM.icon
+                        className={cn(
+                          "h-4 w-4 shrink-0 transition-colors duration-200",
+                          isActive
+                            ? "text-foreground"
+                            : "text-muted-foreground group-hover:text-foreground",
+                        )}
+                      />
+                      {SETTINGS_NAV_ITEM.label}
+                    </>
+                  )}
+                </NavLink>
               </div>
             </div>
           </div>

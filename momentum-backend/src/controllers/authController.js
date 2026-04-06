@@ -123,7 +123,9 @@ export const login = async (req, res) => {
 
     setRefreshTokenCookie(res, refreshToken);
     user.refreshTokenHash = hashToken(refreshToken);
-    user.refreshTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    user.refreshTokenExpiresAt = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    );
     await user.save();
 
     res.status(200).json({
@@ -145,35 +147,46 @@ export const refresh = async (req, res) => {
   try {
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) {
-      return res.status(401).json({ message: "Session expired. Please log in." });
+      return res
+        .status(401)
+        .json({ message: "Session expired. Please log in." });
     }
 
     const decoded = verifyRefreshToken(refreshToken);
     if (!decoded || decoded.type !== "refresh" || !decoded.id) {
-      return res.status(401).json({ message: "Session expired. Please log in." });
+      return res
+        .status(401)
+        .json({ message: "Session expired. Please log in." });
     }
 
     const user = await User.findById(decoded.id);
     if (!user || !user.refreshTokenHash) {
-      return res.status(401).json({ message: "Session expired. Please log in." });
+      return res
+        .status(401)
+        .json({ message: "Session expired. Please log in." });
     }
 
     if (user.refreshTokenExpiresAt && user.refreshTokenExpiresAt < new Date()) {
-      return res.status(401).json({ message: "Session expired. Please log in." });
+      return res
+        .status(401)
+        .json({ message: "Session expired. Please log in." });
     }
 
     if (hashToken(refreshToken) !== user.refreshTokenHash) {
-      return res.status(401).json({ message: "Session expired. Please log in." });
+      return res
+        .status(401)
+        .json({ message: "Session expired. Please log in." });
     }
 
     await ensureUserFriendCode(user);
     await ensureGamificationState(user);
 
-    // Rotate refresh token
     const newRefreshToken = signRefreshToken(user);
     setRefreshTokenCookie(res, newRefreshToken);
     user.refreshTokenHash = hashToken(newRefreshToken);
-    user.refreshTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+    user.refreshTokenExpiresAt = new Date(
+      Date.now() + 30 * 24 * 60 * 60 * 1000,
+    );
     await user.save();
 
     const accessToken = signAccessToken(user);

@@ -1,6 +1,6 @@
 @layer utilities {
   .animate-fade-in {
-    animation: fadeIn 0.3s ease-in;
+    animation: fadeIn 0.3s ease-in both;
   }
 
   @keyframes fadeIn {
@@ -106,6 +106,22 @@
 
   .safe-area-inset-bottom {
     padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .animate-delay-75 {
+    animation-delay: 75ms;
+  }
+
+  .animate-delay-150 {
+    animation-delay: 150ms;
+  }
+
+  .animate-delay-225 {
+    animation-delay: 225ms;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 300ms;
   }
 
   .no-scrollbar::-webkit-scrollbar {

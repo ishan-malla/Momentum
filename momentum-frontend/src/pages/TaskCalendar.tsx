@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import {
-  CalendarDays,
   ChevronLeft,
   ChevronRight,
   ListTodo,
@@ -239,14 +238,10 @@ const TaskCalendar = () => {
   };
 
   return (
-    <div className="mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
-      <section className="relative space-y-4">
+    <div className="animate-fade-in mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
+      <section className="relative animate-drop-in space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#e4dccd] bg-[#fffdfa] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6c6559] shadow-[0_8px_18px_rgba(57,52,43,0.08)]">
-              <CalendarDays className="h-3.5 w-3.5" />
-              Monthly Planner
-            </div>
             <div className="space-y-1">
               <h1 className="font-heading text-[2.15rem] font-semibold tracking-[-0.03em] text-[#2f3e32]">
                 Tasks & Calendar
@@ -361,17 +356,13 @@ const TaskCalendar = () => {
                   <span className="h-2.5 w-2.5 rounded-full bg-[#6f8d6e]" />
                   Monthly tasks only
                 </span>
-                <span className="inline-flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#c9ab76]" />
-                  App color palette
-                </span>
               </div>
             </div>
           </CardContent>
         </Card>
       </section>
 
-      <Card className="rounded-[1.35rem] border-[#ddd6c8] bg-[#fffdfa] py-0 shadow-[0_10px_30px_rgba(57,52,43,0.06)]">
+      <Card className="animate-drop-in animate-delay-150 rounded-[1.35rem] border-[#ddd6c8] bg-[#fffdfa] py-0 shadow-[0_10px_30px_rgba(57,52,43,0.06)]">
         <CardContent className="space-y-5 px-4 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="space-y-1">

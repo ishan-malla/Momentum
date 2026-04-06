@@ -75,8 +75,8 @@ const Analytics = () => {
   };
 
   return (
-    <div className="mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
-      <section className="space-y-2">
+    <div className="animate-fade-in mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
+      <section className="animate-drop-in space-y-2">
         <div className="flex justify-end">
           <Button
             asChild
@@ -108,7 +108,7 @@ const Analytics = () => {
         </Card>
       ) : null}
 
-      <section className="grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
+      <section className="animate-drop-in animate-delay-75 grid gap-3 lg:grid-cols-2 xl:grid-cols-4">
         {isAnalyticsLoading && !summary ? (
           Array.from({ length: 4 }).map((_, index) => (
             <Skeleton key={index} className="h-[130px] rounded-[1.2rem]" />
@@ -123,7 +123,7 @@ const Analytics = () => {
         )}
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
+      <section className="animate-drop-in animate-delay-150 grid gap-5 xl:grid-cols-[minmax(0,1.2fr)_minmax(320px,0.8fr)]">
         {isAnalyticsLoading && !trend.length ? (
           <Skeleton className="h-[360px] rounded-[1.35rem]" />
         ) : (
@@ -160,7 +160,7 @@ const Analytics = () => {
         </Card>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_272px]">
+      <section className="animate-drop-in animate-delay-225 grid gap-5 xl:grid-cols-[minmax(0,1fr)_272px]">
         {isAnalyticsLoading && !streaks.length ? (
           <Skeleton className="h-[360px] rounded-[1.35rem]" />
         ) : (

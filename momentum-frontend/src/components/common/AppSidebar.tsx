@@ -1,22 +1,17 @@
 import { selectCurrentUser } from "@/features/auth/authSlice";
 import { useLogoutMutation } from "@/features/auth/authApiSlice";
 import {
-  Calendar,
-  CheckSquare,
   ChevronRight,
   LogOut,
-  Home,
   Settings,
-  Shield,
-  Timer,
-  Trophy,
-  Users,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { NavLink, useNavigate } from "react-router";
 import { formatDisplayName } from "@/utils/greeting";
 import { toast } from "sonner";
+import { getPrimaryNavigation } from "@/components/common/appNavigation";
+import { cn } from "@/lib/utils";
 
 const AppSidebar = () => {
   const navigate = useNavigate();
@@ -25,22 +20,7 @@ const AppSidebar = () => {
   const [isAccountMenuOpen, setIsAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef<HTMLDivElement | null>(null);
 
-  const navItems = useMemo(() => {
-    const items = [
-      { to: "/home", label: "Overview", icon: Home, end: true },
-      { to: "/habits", label: "Habits", icon: CheckSquare, end: false },
-      { to: "/timer", label: "Timer", icon: Timer, end: false },
-      { to: "/task-calendar", label: "Tasks & Calendar", icon: Calendar, end: false },
-      { to: "/social", label: "Social", icon: Users, end: false },
-      { to: "/achievments", label: "Achievements", icon: Trophy, end: false },
-    ];
-
-    if (user?.role === "admin") {
-      return [...items, { to: "/admin", label: "Admin", icon: Shield, end: false }];
-    }
-
-    return items;
-  }, [user?.role]);
+  const navItems = useMemo(() => getPrimaryNavigation(user?.role), [user?.role]);
 
   const displayName = formatDisplayName(user?.username, "Guest");
   const avatarUrl = user?.avatarUrl ?? "";
@@ -84,10 +64,10 @@ const AppSidebar = () => {
   };
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[21rem] border-r border-sidebar-border/80 bg-sidebar shadow-[8px_0_24px_rgba(28,25,23,0.06)] md:block">
+    <aside className="fixed inset-y-0 left-0 z-30 hidden w-[20rem] border-r border-sidebar-border/80 bg-sidebar md:block">
       <div className="flex h-full flex-col">
         <div className="border-b border-sidebar-border/70 px-5 py-5">
-          <h1 className="font-display text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="font-secondary text-lg font-semibold tracking-tight text-foreground">
             Momentum
           </h1>
         </div>
@@ -103,23 +83,23 @@ const AppSidebar = () => {
                 to={to}
                 end={end}
                 className={({ isActive }) =>
-                  [
-                    "group flex items-center gap-3 rounded-lg border px-3.5 py-2.5 text-[15px] font-secondary transition-all",
+                  cn(
+                    "group flex items-center gap-3 rounded-lg border px-3.5 py-2.75 text-[15px] font-secondary transition-colors",
                     isActive
-                      ? "border-sidebar-border bg-sidebar-accent text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.06)]"
-                      : "border-transparent text-muted-foreground hover:border-sidebar-border/80 hover:bg-sidebar-accent/80 hover:text-foreground",
-                  ].join(" ")
+                      ? "border-sidebar-border bg-sidebar-accent text-foreground"
+                      : "border-transparent text-muted-foreground hover:border-sidebar-border/80 hover:bg-sidebar-accent hover:text-foreground",
+                  )
                 }
               >
                 {({ isActive }) => (
                   <>
                     <Icon
-                      className={[
-                        "h-4 w-4 shrink-0 transition-colors",
+                      className={cn(
+                        "h-4 w-4 shrink-0 transition-colors duration-200",
                         isActive
                           ? "text-foreground"
                           : "text-muted-foreground group-hover:text-foreground",
-                      ].join(" ")}
+                      )}
                     />
                     <span>{label}</span>
                   </>
@@ -134,7 +114,7 @@ const AppSidebar = () => {
             <button
               type="button"
               onClick={() => setIsAccountMenuOpen((previous) => !previous)}
-              className="flex w-full items-center gap-3 rounded-md px-1 py-1 transition-colors hover:bg-sidebar-accent/80"
+              className="flex w-full items-center gap-3 rounded-lg px-2 py-2 transition-colors hover:bg-sidebar-accent"
               aria-label="Open account menu"
               aria-expanded={isAccountMenuOpen}
             >
@@ -158,19 +138,19 @@ const AppSidebar = () => {
               </div>
 
               <ChevronRight
-                className={[
-                  "h-4 w-4 shrink-0 text-muted-foreground transition-transform",
-                  isAccountMenuOpen ? "rotate-90" : "",
-                ].join(" ")}
+                className={cn(
+                  "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+                  isAccountMenuOpen && "rotate-90",
+                )}
               />
             </button>
 
             {isAccountMenuOpen && (
-              <div className="absolute bottom-14 right-0 z-50 w-[57.5%] overflow-hidden rounded-md border border-sidebar-border bg-sidebar shadow-[0_10px_26px_rgba(28,25,23,0.12)]">
+              <div className="animate-drop-in absolute bottom-16 right-0 z-50 w-[62%] overflow-hidden rounded-lg border border-sidebar-border bg-sidebar">
                 <button
                   type="button"
                   onClick={handleOpenSettings}
-                  className="flex w-full items-center gap-2 px-3 py-[0.5625rem] text-left text-xs font-secondary text-foreground transition-colors hover:bg-sidebar-accent/80"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-secondary text-foreground transition-colors hover:bg-sidebar-accent"
                 >
                   <Settings className="h-4 w-4" />
                   <span>Settings</span>
@@ -180,7 +160,7 @@ const AppSidebar = () => {
                   type="button"
                   onClick={handleLogout}
                   disabled={isLoggingOut}
-                  className="flex w-full items-center gap-2 px-3 py-[0.5625rem] text-left text-xs font-secondary text-destructive transition-colors hover:bg-sidebar-accent/80 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs font-secondary text-destructive transition-colors hover:bg-sidebar-accent disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import ActivityFeedCard from "@/components/social/ActivityFeedCard";
 import FriendProfileModal from "@/components/social/FriendProfileModal";
 import FriendsComparisonChart from "@/components/social/FriendsComparisonChart";
@@ -32,33 +32,25 @@ const Social = () => {
   const pendingRequests = data?.pendingRequests ?? [];
   const currentFriendCode = data?.friendCode ?? user?.friendCode ?? "";
   const currentUsername = formatDisplayName(user?.username, "You");
-  const leaderboardEntries = useMemo(
-    () =>
-      (socialData?.leaderboard ?? []).map((entry) =>
-        entry.isCurrentUser
-          ? {
-              ...entry,
-              username: currentUsername,
-              bio: user?.bio || entry.bio,
-              avatarUrl: user?.avatarUrl || entry.avatarUrl,
-              canUnfriend: false,
-            }
-          : { ...entry, canUnfriend: true },
-      ),
-    [currentUsername, socialData?.leaderboard, user?.avatarUrl],
+  const leaderboardEntries = (socialData?.leaderboard ?? []).map((entry) =>
+    entry.isCurrentUser
+      ? {
+          ...entry,
+          username: currentUsername,
+          bio: user?.bio || entry.bio,
+          avatarUrl: user?.avatarUrl || entry.avatarUrl,
+          canUnfriend: false,
+        }
+      : { ...entry, canUnfriend: true },
   );
-  const activityFeedItems = useMemo(
-    () =>
-      (socialData?.activityFeed ?? []).map((item) =>
-        item.username === user?.username
-          ? {
-              ...item,
-              username: currentUsername,
-              avatarUrl: user?.avatarUrl || item.avatarUrl,
-            }
-          : item,
-      ),
-    [currentUsername, socialData?.activityFeed, user?.avatarUrl, user?.username],
+  const activityFeedItems = (socialData?.activityFeed ?? []).map((item) =>
+    item.username === user?.username
+      ? {
+          ...item,
+          username: currentUsername,
+          avatarUrl: user?.avatarUrl || item.avatarUrl,
+        }
+      : item,
   );
 
   const getErrorMessage = (error: unknown, fallback: string) => {
@@ -123,9 +115,9 @@ const Social = () => {
   };
 
   return (
-    <div className="mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
-      <section className="space-y-4">
-        <div className="flex items-start justify-between gap-4">
+    <div className="animate-fade-in mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
+      <section className="animate-drop-in space-y-4">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="space-y-2">
             <p className="font-secondary text-sm font-semibold uppercase tracking-[0.16em] text-[#8a826f]">
               Social
@@ -153,7 +145,7 @@ const Social = () => {
       </section>
 
       <section className="space-y-5">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,0.7fr)_minmax(0,0.3fr)]">
+        <div className="animate-drop-in animate-delay-75 grid gap-5 xl:grid-cols-[minmax(0,0.7fr)_minmax(0,0.3fr)]">
           <LeaderboardCard
             entries={leaderboardEntries}
             metric={selectedMetric}
@@ -163,11 +155,13 @@ const Social = () => {
           <ActivityFeedCard items={activityFeedItems} />
         </div>
 
-        <FriendsComparisonChart
-          entries={leaderboardEntries}
-          metric={selectedMetric}
-          maxFriends={4}
-        />
+        <div className="animate-drop-in animate-delay-150">
+          <FriendsComparisonChart
+            entries={leaderboardEntries}
+            metric={selectedMetric}
+            maxFriends={4}
+          />
+        </div>
       </section>
 
       <FriendProfileModal

@@ -239,8 +239,8 @@ const TaskCalendar = () => {
   };
 
   return (
-    <div className="mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
-      <section className="relative space-y-4">
+    <div className="animate-fade-in mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
+      <section className="relative animate-drop-in space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 rounded-full border border-[#e4dccd] bg-[#fffdfa] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6c6559] shadow-[0_8px_18px_rgba(57,52,43,0.08)]">
@@ -371,7 +371,7 @@ const TaskCalendar = () => {
         </Card>
       </section>
 
-      <Card className="rounded-[1.35rem] border-[#ddd6c8] bg-[#fffdfa] py-0 shadow-[0_10px_30px_rgba(57,52,43,0.06)]">
+      <Card className="animate-drop-in animate-delay-150 rounded-[1.35rem] border-[#ddd6c8] bg-[#fffdfa] py-0 shadow-[0_10px_30px_rgba(57,52,43,0.06)]">
         <CardContent className="space-y-5 px-4 py-5 sm:px-6 sm:py-6">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="space-y-1">

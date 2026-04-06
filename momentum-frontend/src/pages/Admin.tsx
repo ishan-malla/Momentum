@@ -19,8 +19,8 @@ const Admin = () => {
   };
 
   return (
-    <div className="mx-auto mt-6 w-full xl:max-w-7xl px-4 sm:px-5 xl:px-0">
-      <div className="flex items-start justify-between gap-4">
+    <div className="animate-fade-in mx-auto mt-6 w-full xl:max-w-7xl px-4 sm:px-5 xl:px-0">
+      <div className="animate-drop-in flex items-start justify-between gap-4 rounded-[1.2rem] border border-[#ddd6c8] bg-[#fffdfa] px-5 py-5 shadow-[0_10px_26px_rgba(57,52,43,0.06)]">
         <div>
           <h2 className="text-[20px] sm:text-[24px] lg:text-[28px] font-serif font-semibold text-foreground">
             Hi Admin

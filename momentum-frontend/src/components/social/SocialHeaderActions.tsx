@@ -41,50 +41,54 @@ const SocialHeaderActions = ({
   };
 
   return (
-    <div className="relative flex shrink-0 items-center gap-2">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => toggleOverlay("actions")}
-        className={[
-          "relative h-10 rounded-full border-[#ddd6c8] px-3.5 text-sm shadow-none",
-          activeOverlay === "actions"
-            ? "border-[#d6cec0] bg-[#f3ede4] text-[#2f3e32] hover:bg-[#ece4d8]"
-            : "bg-[#fffdfa] text-[#304034] hover:bg-[#f6f1e8]",
-        ].join(" ")}
-        aria-expanded={activeOverlay === "actions"}
-        aria-label={activeOverlay === "actions" ? "Close friend requests" : "Open friend requests"}
-      >
-        <UserRoundPlus className="h-4 w-4" />
-        <span>Requests</span>
-        {pendingRequests.length ? (
-          <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-[#d46b39] px-1.5 py-0.5 text-[10px] font-semibold text-white">
-            {pendingRequests.length}
-          </span>
-        ) : null}
-      </Button>
+    <div className="relative z-20 w-full xl:max-w-[360px]">
+      <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => toggleOverlay("actions")}
+          className={[
+            "relative h-10 rounded-full border-[#ddd6c8] px-3.5 text-sm shadow-none",
+            activeOverlay === "actions"
+              ? "border-[#d6cec0] bg-[#f3ede4] text-[#2f3e32] hover:bg-[#ece4d8]"
+              : "bg-[#fffdfa] text-[#304034] hover:bg-[#f6f1e8]",
+          ].join(" ")}
+          aria-expanded={activeOverlay === "actions"}
+          aria-label={
+            activeOverlay === "actions" ? "Close friend requests" : "Open friend requests"
+          }
+        >
+          <UserRoundPlus className="h-4 w-4" />
+          <span>Requests</span>
+          {pendingRequests.length ? (
+            <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-[#d46b39] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+              {pendingRequests.length}
+            </span>
+          ) : null}
+        </Button>
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => toggleOverlay("friends")}
-        className={[
-          "h-10 rounded-full border-[#ddd6c8] px-3.5 text-sm shadow-none",
-          activeOverlay === "friends"
-            ? "border-[#d6cec0] bg-[#f3ede4] text-[#2f3e32] hover:bg-[#ece4d8]"
-            : "bg-[#fffdfa] text-[#304034] hover:bg-[#f6f1e8]",
-        ].join(" ")}
-        aria-expanded={activeOverlay === "friends"}
-        aria-label={activeOverlay === "friends" ? "Close friends view" : "Open friends view"}
-      >
-        <Users className="h-4 w-4" />
-        <span>View Friends</span>
-      </Button>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => toggleOverlay("friends")}
+          className={[
+            "h-10 rounded-full border-[#ddd6c8] px-3.5 text-sm shadow-none",
+            activeOverlay === "friends"
+              ? "border-[#d6cec0] bg-[#f3ede4] text-[#2f3e32] hover:bg-[#ece4d8]"
+              : "bg-[#fffdfa] text-[#304034] hover:bg-[#f6f1e8]",
+          ].join(" ")}
+          aria-expanded={activeOverlay === "friends"}
+          aria-label={activeOverlay === "friends" ? "Close friends view" : "Open friends view"}
+        >
+          <Users className="h-4 w-4" />
+          <span>View Friends</span>
+        </Button>
+      </div>
 
       {activeOverlay ? (
-        <div className="absolute right-0 top-12 z-30 w-[min(90vw,360px)]">
+        <div className="absolute left-0 right-0 top-[calc(100%+0.75rem)] z-30 w-full">
           {activeOverlay === "actions" ? (
             <SocialActionsPanel
               currentFriendCode={currentFriendCode}

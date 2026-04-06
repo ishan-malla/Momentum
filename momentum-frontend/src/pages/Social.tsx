@@ -116,12 +116,9 @@ const Social = () => {
 
   return (
     <div className="animate-fade-in mx-auto mt-6 w-full space-y-6 px-4 sm:px-5 xl:max-w-7xl xl:px-0">
-      <section className="animate-drop-in space-y-4">
+      <section className="relative z-20 animate-drop-in space-y-4">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
           <div className="space-y-2">
-            <p className="font-secondary text-sm font-semibold uppercase tracking-[0.16em] text-[#8a826f]">
-              Social
-            </p>
             <h1 className="font-heading text-[2.15rem] font-semibold tracking-[-0.03em] text-[#2f3e32]">
               Stay motivated with friends
             </h1>
@@ -144,7 +141,7 @@ const Social = () => {
         </div>
       </section>
 
-      <section className="space-y-5">
+      <section className="relative z-0 space-y-5">
         <div className="animate-drop-in animate-delay-75 grid gap-5 xl:grid-cols-[minmax(0,0.7fr)_minmax(0,0.3fr)]">
           <LeaderboardCard
             entries={leaderboardEntries}

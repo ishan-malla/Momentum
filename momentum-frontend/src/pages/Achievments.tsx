@@ -5,9 +5,6 @@ const Achievments = () => {
         <h2 className="text-[20px] sm:text-[24px] lg:text-[28px] font-serif font-semibold text-foreground">
           Achievements
         </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Milestones and badges will appear here as you build momentum.
-        </p>
       </div>
     </div>
   );
